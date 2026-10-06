@@ -7,7 +7,6 @@ solutions/
 *.docx
 *.pptx
 *.xlsx
-*.pdf
 *.ipynb
 .venv/
 outputs/
