@@ -231,6 +231,83 @@ batch size 512; maximum 20 epochs; early-stopping patience 4 and minimum validat
 \end{itemize}
 
 \section*{A2}
+\begin{itemize}
+\item \textbf{Protocol:} All three models were trained from scratch on 2017--2021 for 13 epochs with $h=128$, $d=12$ where applicable, Adam (learning rate 0.01), and batch size 512. Preprocessing was fitted on the combined training set.
+\item \textbf{Seeds and evaluation:} Seeds $\{42,43,44,45,46\}$ were used for each model, with identical minibatch orders for matching seeds. Each run was evaluated once on the 2022 test set. Results are mean $\pm$ sample SD ($n=5$); error bars show SD. The independent shuffle generator differs from A1(d), so its seed-42 result can differ.
+\end{itemize}
+\textbf{Per-seed results:} RMSE values are in SGD; all runs used 13 epochs.
+\begin{center}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Model & Seed & Training RMSE & Test RMSE & Test $R^2$ \\
+\midrule
+Baseline & 42 & 37,926.73 & 98,124.06 & 0.6679 \\
+Baseline & 43 & 38,258.40 & 97,431.21 & 0.6725 \\
+Baseline & 44 & 37,931.61 & 101,068.42 & 0.6476 \\
+Baseline & 45 & 37,476.46 & 97,601.34 & 0.6714 \\
+Baseline & 46 & 38,618.59 & 106,030.81 & 0.6122 \\
+\midrule
+Without embeddings & 42 & 54,406.94 & 114,211.19 & 0.5500 \\
+Without embeddings & 43 & 55,308.87 & 117,697.22 & 0.5221 \\
+Without embeddings & 44 & 55,730.65 & 119,940.38 & 0.5037 \\
+Without embeddings & 45 & 53,933.65 & 113,674.84 & 0.5542 \\
+Without embeddings & 46 & 54,487.32 & 105,507.78 & 0.6160 \\
+\midrule
+Sigmoid & 42 & 38,004.36 & 96,090.96 & 0.6815 \\
+Sigmoid & 43 & 39,493.07 & 109,142.47 & 0.5891 \\
+Sigmoid & 44 & 38,728.61 & 89,514.55 & 0.7236 \\
+Sigmoid & 45 & 36,920.54 & 98,480.10 & 0.6654 \\
+Sigmoid & 46 & 38,093.72 & 94,102.55 & 0.6945 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\textbf{Five-seed summary:}
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+Model & Test RMSE (SGD) & Test $R^2$ \\
+\midrule
+Baseline & $100,051.17 \pm 3,652.75$ & $0.6543 \pm 0.0256$ \\
+Without embeddings & $114,206.28 \pm 5,500.29$ & $0.5492 \pm 0.0427$ \\
+Sigmoid & $97,466.13 \pm 7,310.91$ & $0.6708 \pm 0.0504$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=0.46\linewidth,height=3.8cm,ybar,bar width=12pt,
+    ymin=0,ymax=140,ylabel={Test RMSE (thousand SGD)},
+    xtick={1,2,3},xticklabels={Baseline,No emb.,Sigmoid},
+    tick label style={font=\scriptsize},label style={font=\footnotesize},
+    grid=major,scaled y ticks=false]
+\addplot+[fill=blue!45,draw=blue,error bars/.cd,y dir=both,y explicit]
+coordinates {(1,100.051167) +- (0,3.652754) (2,114.206281) +- (0,5.500293) (3,97.466128) +- (0,7.310907)};
+\end{axis}
+\end{tikzpicture}
+\begin{tikzpicture}
+\begin{axis}[width=0.46\linewidth,height=3.8cm,ybar,bar width=12pt,
+    ymin=0,ymax=0.8,ylabel={Test $R^2$},
+    xtick={1,2,3},xticklabels={Baseline,No emb.,Sigmoid},
+    tick label style={font=\scriptsize},label style={font=\footnotesize},
+    grid=major,scaled y ticks=false]
+\addplot+[fill=blue!45,draw=blue,error bars/.cd,y dir=both,y explicit]
+coordinates {(1,0.654316) +- (0,0.025629) (2,0.549227) +- (0,0.042678) (3,0.670822) +- (0,0.050425)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\subsection*{(a) Removing Categorical Embeddings}
+\begin{itemize}
+\item \textbf{Modification:} All four embedding tables were removed. The first layer changed from $54\to128$ to $6\to128$; LayerNorm, ReLU, and the output layer were retained. Trainable parameters decreased from 8,649 to 1,281.
+\item \textbf{Result:} Mean test RMSE increased by 14.15\%, and mean $R^2$ decreased from 0.6543 to 0.5492. RMSE worsened for four of five matched seeds.
+\item \textbf{Interpretation:} Categorical inputs provide useful information beyond the continuous features. Mean training RMSE also rose from 38,042.36 to 54,773.49 SGD, consistent with reduced fitting ability. This ablation removes both information and parameters, so their effects cannot be separated.
+\end{itemize}
+\subsection*{(b) Replacing ReLU with Sigmoid}
+\begin{itemize}
+\item \textbf{Modification:} Only the hidden activation changed to Sigmoid.
+\item \textbf{Result:} Mean test RMSE decreased by 2.58\%, and mean $R^2$ increased to 0.6708. However, RMSE SD increased from 3,652.75 to 7,310.91 SGD; Sigmoid improved RMSE for three of five matched seeds.
+\item \textbf{Interpretation:} Sigmoid changes the bounded hidden representation and gradient behaviour while leaving capacity unchanged in parameter count. Mean training RMSE was similar (38,248.06 versus 38,042.36 SGD). Its modest average test improvement and larger seed variation do not establish a reliable advantage over ReLU in this experiment.
+\end{itemize}
 
 \section*{A3}
 

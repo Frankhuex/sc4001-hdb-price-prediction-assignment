@@ -28,6 +28,25 @@ class TrainingResult:
     best_validation_rmse: float
     history: list[EpochMetrics]
 
+def train_one_epoch(
+    model: PriceModel,
+    loader: DataLoader,
+    optimiser: torch.optim.Optimizer,
+    loss_function: nn.Module,
+) -> None:
+    """Update the model for one epoch without accessing evaluation data."""
+    model.train()
+    categorical: torch.Tensor
+    continuous: torch.Tensor
+    target: torch.Tensor
+    for categorical, continuous, target in loader:
+        optimiser.zero_grad()
+        prediction: torch.Tensor = model(categorical, continuous)
+        standard_target: torch.Tensor = (target - model.target_mean) / model.target_std
+        loss: torch.Tensor = loss_function(prediction, standard_target)
+        loss.backward()
+        optimiser.step()
+
 @torch.no_grad()
 def calculate_rmse(
     model: PriceModel, dataset: TensorDataset, batch_size: int

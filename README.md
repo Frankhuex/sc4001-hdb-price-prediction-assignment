@@ -79,6 +79,32 @@ combined-training scaling statistics. Reproduce category maps with
 `prepare_data(..., combine_train_validation=True)` when loading this model.
 A1(e) interprets these results and requires no additional command.
 
+## A2(a)--(b): Five-seed ablations
+
+After A1(b), run all three architectures:
+
+```bash
+mkdir -p outputs/a2
+uv run python src/ablation.py > outputs/a2/run.log 2>&1
+```
+
+Baseline, Without embeddings (A2a), and Sigmoid (A2b) each run with seeds
+42, 43, 44, 45, and 46. All use the A1-selected width, embedding dimension,
+epoch count, and optimiser settings; preprocessing is fitted on 2017--2021.
+The no-embedding model has only six continuous inputs. Sigmoid changes only
+the hidden activation. Independent seeded DataLoader generators give all
+three variants the same minibatch order for each seed. Every model trains
+from scratch for 13 epochs in the recorded experiment, then evaluates the
+2022 test set exactly once. This controlled shuffle protocol differs from
+A1(d), so its seed-42 result need not match A1(d).
+
+`outputs/a2/` contains `run.log`, per-run `results.csv`, `summary.csv` with
+five-seed means and sample standard deviations (`ddof=1`), and error-bar
+plots `test_rmse.png` and `test_r2.png`. Each architecture/seed directory
+contains training `history.csv`, `final_model.pt`, and `metadata.json`.
+Shared preprocessing statistics and experiment settings are in the top-level
+`metadata.json`; reproduce category maps with combined-data `prepare_data`.
+
 ## Original baseline
 
 To run one experiment using the original configuration:
@@ -101,3 +127,4 @@ hyperparameters are defined in `src/config.py`.
 | `src/baseline.py` | Shared training and RMSE evaluation, plus the single-run baseline entry point |
 | `src/grid_search.py` | A1(b) Ray grid search and result export |
 | `src/retrain.py` | A1(c) curves and A1(d) combined-data retraining and test evaluation |
+| `src/ablation.py` | A2 five-seed baseline and ablation comparison, statistics, and plots |

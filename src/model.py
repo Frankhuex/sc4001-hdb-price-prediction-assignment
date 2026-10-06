@@ -1,3 +1,5 @@
+from typing import Literal
+
 import torch
 from torch import nn
 
@@ -10,18 +12,26 @@ class PriceModel(nn.Module):
         target_mean: float,
         target_std: float,
         config: Config,
+        *,
+        use_embeddings: bool = True,
+        activation: Literal["relu", "sigmoid"] = "relu",
     ) -> None:
         super().__init__()
         self.embeddings: nn.ModuleList = nn.ModuleList(
             nn.Embedding(cardinality, width)
             for cardinality, width in zip(cardinalities, config.embedding_dims)
+            if use_embeddings
         )
 
-        input_width: int = sum(config.embedding_dims) + len(config.continuous_features)
+        input_width: int = len(config.continuous_features)
+        if use_embeddings:
+            input_width += sum(config.embedding_dims)
+        if activation not in ("relu", "sigmoid"):
+            raise ValueError(f"Unsupported activation: {activation}")
         self.mlp: nn.Sequential = nn.Sequential(
             nn.Linear(input_width, config.hidden_width),
             nn.LayerNorm(config.hidden_width),
-            nn.ReLU(),
+            nn.ReLU() if activation == "relu" else nn.Sigmoid(),
             nn.Linear(config.hidden_width, 1),
         )
 
