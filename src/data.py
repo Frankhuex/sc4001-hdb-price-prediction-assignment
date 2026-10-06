@@ -8,11 +8,9 @@ from torch.utils.data import TensorDataset
 
 from config import Config
 
-
 # pandas records have dynamically inferred CSV column types.
 Row: TypeAlias = Mapping[str, Any]
 CategoryMaps: TypeAlias = Mapping[str, Mapping[Hashable, int]]
-
 
 class PreparedData(TypedDict):
     train: TensorDataset
@@ -23,7 +21,6 @@ class PreparedData(TypedDict):
     continuous_std: torch.Tensor
     target_mean: float
     target_std: float
-
 
 def make_dataset(
     rows: Sequence[Row],
@@ -50,7 +47,6 @@ def make_dataset(
 
     target: torch.Tensor = torch.tensor([float(row["resale_price"]) for row in rows])
     return TensorDataset(categorical, continuous, target)
-
 
 def prepare_data(csv_path: str | PathLike[str], config: Config) -> PreparedData:
     data: pd.DataFrame = pd.read_csv(csv_path)

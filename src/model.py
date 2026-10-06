@@ -3,7 +3,6 @@ from torch import nn
 
 from config import Config
 
-
 class PriceModel(nn.Module):
     def __init__(
         self,
