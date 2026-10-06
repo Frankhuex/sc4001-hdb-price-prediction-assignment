@@ -4,6 +4,8 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 \usetikzlibrary{arrows.meta}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{5pt}
@@ -181,11 +183,52 @@ batch size 512; maximum 20 epochs; early-stopping patience 4 and minimum validat
 59,766.91 SGD at epoch 13. Training stopped at epoch 17 and epoch-13 weights were retained.
 \end{itemize}
 
-\subsection*{(c)}
+\subsection*{(c) Selected Configuration}
+\begin{itemize}
+\item \textbf{Optimal hyperparameters:} Hidden-layer width 128; embedding dimension 12 for each categorical feature.
+\item \textbf{Best validation RMSE:} 59,766.91 SGD at epoch 13.
+\item \textbf{Learning curves:} Training and validation RMSE are shown below.
+\end{itemize}
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=0.88\linewidth,height=5cm,xlabel={Epoch},ylabel={RMSE (SGD)},
+    grid=major,legend pos=north east,scaled y ticks=false,
+    tick label style={font=\footnotesize},legend style={font=\footnotesize}]
+\addplot[blue,mark=*,mark size=1pt] coordinates {(1,49786.64) (2,35806.02) (3,34152.35) (4,33512.15) (5,32984.00) (6,32527.39) (7,32145.88) (8,31840.60) (9,31677.56) (10,31533.72) (11,31447.24) (12,31343.24) (13,31207.16) (14,30881.99) (15,30834.08) (16,30744.51) (17,30627.12)};
+\addlegendentry{Training}
+\addplot[orange,mark=*,mark size=1pt] coordinates {(1,67977.73) (2,65985.09) (3,69116.43) (4,67786.15) (5,65973.66) (6,64998.60) (7,65248.47) (8,64820.98) (9,64334.48) (10,71777.88) (11,63401.93) (12,65172.15) (13,59766.91) (14,64428.73) (15,62303.98) (16,65328.07) (17,69319.56)};
+\addlegendentry{Validation}
+\end{axis}
+\end{tikzpicture}
+\end{center}
 
-\subsection*{(d)}
+\subsection*{(d) Retraining and Test Performance}
+\begin{itemize}
+\item \textbf{Retraining:} A fresh model with the selected architecture was trained on 2017--2021 (116,427 records), with preprocessing refitted on this combined set. Seed 42 and the A1(b) optimiser settings were retained.
+\item \textbf{Epoch count:} Fixed at 13 using the best validation epoch from A1(c).
+\item \textbf{Evaluation:} Training and testing RMSE were computed after each epoch in SGD. The 2022 test set contained 26,702 records.
+\item \textbf{Final test performance:} RMSE = 90,595.88 SGD; $R^2=0.716868$.
+\end{itemize}
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=0.88\linewidth,height=5cm,xlabel={Epoch},ylabel={RMSE (SGD)},
+    grid=major,legend pos=north east,scaled y ticks=false,
+    tick label style={font=\footnotesize},legend style={font=\footnotesize}]
+\addplot[blue,mark=*,mark size=1pt] coordinates {(1,44476.87) (2,43713.22) (3,40731.09) (4,41047.01) (5,39436.78) (6,39715.32) (7,39363.31) (8,39106.39) (9,38749.19) (10,39389.33) (11,39262.43) (12,38150.43) (13,38591.78)};
+\addlegendentry{Training}
+\addplot[orange,mark=*,mark size=1pt] coordinates {(1,107836.35) (2,92796.21) (3,104438.02) (4,97145.51) (5,99558.52) (6,104728.08) (7,104755.35) (8,98801.33) (9,99991.73) (10,92130.27) (11,92354.49) (12,101851.27) (13,90595.88)};
+\addlegendentry{Test}
+\end{axis}
+\end{tikzpicture}
+\end{center}
 
-\subsection*{(e)}
+\subsection*{(e) Discussion}
+\begin{itemize}
+\item \textbf{Configuration choice:} $(h,d)=(128,12)$ achieved the lowest validation RMSE (59,766.91 SGD), improving on the original $(64,8)$ configuration (63,422.46 SGD) by 5.76\%. The runner-up $(256,2)$ scored 59,926.48 SGD, only 159.58 SGD higher.
+\item \textbf{Capacity:} Larger widths and embeddings did not consistently improve validation RMSE. For example, at $h=128$, increasing $d$ from 12 to 16 worsened the best RMSE to 65,599.97 SGD.
+\item \textbf{Overfitting evidence:} After epoch 13, training RMSE declined from 31,207.16 to 30,627.12 SGD while validation RMSE rose from 59,766.91 to 69,319.56 SGD by epoch 17, supporting early stopping and indicating overfitting in later epochs.
+\item \textbf{Generalisation:} Retraining ended with training RMSE 38,591.78 SGD and test RMSE 90,595.88 SGD. This gap indicates limited generalisation; changes between the training years and 2022 may also contribute.
+\end{itemize}
 
 \section*{A2}
 

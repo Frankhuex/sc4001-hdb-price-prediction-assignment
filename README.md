@@ -56,6 +56,29 @@ The metadata does not contain the category-to-ID maps; reproduce them with
 The epoch training RMSE follows the supplied baseline's calculation over
 training batches; validation RMSE uses the model at the end of each epoch.
 
+## A1(c)--(d): Curves and final retraining
+
+After A1(b), run:
+
+```bash
+mkdir -p outputs/a1_d
+uv run python src/retrain.py > outputs/a1_d/run.log 2>&1
+```
+
+The script reads the selected configuration and best epoch from A1(b), plots
+its training/validation history to `outputs/a1_b/selected/rmse_curves.png`,
+then initializes a fresh model and refits preprocessing on combined
+2017--2021 data. It trains for the number of epochs selected by validation
+(13 in the recorded experiment). Test metrics never determine stopping or
+model selection. Both training and testing RMSE are evaluated at the end
+of each retraining epoch, in SGD.
+
+`outputs/a1_d/` contains `run.log`, `history.csv`, `rmse_curves.png`,
+`final_model.pt`, and `metadata.json` with final test RMSE and R² and the
+combined-training scaling statistics. Reproduce category maps with
+`prepare_data(..., combine_train_validation=True)` when loading this model.
+A1(e) interprets these results and requires no additional command.
+
 ## Original baseline
 
 To run one experiment using the original configuration:
@@ -77,3 +100,4 @@ hyperparameters are defined in `src/config.py`.
 | `src/model.py` | Categorical embeddings and MLP |
 | `src/baseline.py` | Shared training and RMSE evaluation, plus the single-run baseline entry point |
 | `src/grid_search.py` | A1(b) Ray grid search and result export |
+| `src/retrain.py` | A1(c) curves and A1(d) combined-data retraining and test evaluation |

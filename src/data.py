@@ -48,12 +48,16 @@ def make_dataset(
     target: torch.Tensor = torch.tensor([float(row["resale_price"]) for row in rows])
     return TensorDataset(categorical, continuous, target)
 
-def prepare_data(csv_path: str | PathLike[str], config: Config) -> PreparedData:
+def prepare_data(
+    csv_path: str | PathLike[str], config: Config,
+    *, combine_train_validation: bool = False,
+) -> PreparedData:
     data: pd.DataFrame = pd.read_csv(csv_path)
     rows: list[Row] = data.to_dict(orient="records")
 
     train_rows: list[Row] = [
         row for row in rows if int(row["year"]) in config.train_years
+        or (combine_train_validation and int(row["year"]) == config.validation_year)
     ]
     validation_rows: list[Row] = [
         row for row in rows if int(row["year"]) == config.validation_year
