@@ -38,7 +38,7 @@ debugging, and interpretation of the code and assignment requirements.
 
 \newpage
 \section*{A1}
-\subsection*{(a)}
+\subsection*{(a) Block Diagram \& Parameter Count}
 \textbf{Block Diagram:}
 \begin{center}
 \resizebox{\linewidth}{!}{%
@@ -169,7 +169,17 @@ Explanation:
 \item Concatenation, ReLU, squeezing, and inverse target standardization add no trainable parameters.
 \end{itemize}
 
-\subsection*{(b)}
+\subsection*{(b) Hyperparameter Search}
+
+\begin{itemize}
+\item \textbf{Search method:} Ray Tune grid search over 25 combinations: Hidden-layer width $h\in\{16,32,64,128,256\}$ and
+embedding dimension $d\in\{2,4,8,12,16\}$ shared by all four categorical features.
+\item \textbf{Data split:} Training on 2017--2020 and validation on 2021.
+\item \textbf{Training settings:} Seed 42; Adam with learning rate 0.01;
+batch size 512; maximum 20 epochs; early-stopping patience 4 and minimum validation RMSE improvement $10^{-4}$.
+\item \textbf{Best result:} $h=128$, $d=12$; validation RMSE
+59,766.91 SGD at epoch 13. Training stopped at epoch 17 and epoch-13 weights were retained.
+\end{itemize}
 
 \subsection*{(c)}
 

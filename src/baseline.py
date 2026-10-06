@@ -1,5 +1,8 @@
 import copy
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
+from typing import TypedDict
 
 import torch
 from torch import nn
@@ -12,6 +15,18 @@ from model import PriceModel
 DATA_PATH: str = "hdb_price_prediction.csv"
 OUTPUT_DIR: Path = Path("outputs/baseline")
 
+class EpochMetrics(TypedDict):
+    epoch: int
+    train_rmse: float
+    validation_rmse: float
+    best_validation_rmse: float
+    best_epoch: int
+
+@dataclass
+class TrainingResult:
+    best_epoch: int
+    best_validation_rmse: float
+    history: list[EpochMetrics]
 
 @torch.no_grad()
 def calculate_rmse(
@@ -31,13 +46,13 @@ def calculate_rmse(
     target = torch.cat(targets)
     return (prediction - target).square().mean().sqrt().item()
 
-
 def train_model(
     model: PriceModel,
     train_data: TensorDataset,
     validation_data: TensorDataset,
     config: Config,
-) -> int:
+    report_epoch: Callable[[EpochMetrics], None] | None = None,
+) -> TrainingResult:
     train_loader: DataLoader[tuple[torch.Tensor, ...]] = DataLoader(
         train_data, config.batch_size, shuffle=True
     )
@@ -47,9 +62,11 @@ def train_model(
     )
 
     best_rmse: float = float("inf")
+    stopping_rmse: float = float("inf")
     best_weights: dict[str, torch.Tensor] | None = None
     best_epoch: int = 0
     epochs_without_improvement: int = 0
+    history: list[EpochMetrics] = []
     epoch: int
     categorical: torch.Tensor
     continuous: torch.Tensor
@@ -84,23 +101,35 @@ def train_model(
             f"| validation RMSE {validation_rmse:,.0f}"
         )
 
-        if (
-            best_weights is None
-            or validation_rmse < best_rmse - config.early_stopping_threshold
-        ):
+        if best_weights is None or validation_rmse < best_rmse:
             best_rmse = validation_rmse
             best_weights = copy.deepcopy(model.state_dict())
             best_epoch = epoch
+
+        # Keep the true minimum checkpoint; min_delta controls patience only.
+        if validation_rmse < stopping_rmse - config.early_stopping_threshold:
+            stopping_rmse = validation_rmse
             epochs_without_improvement = 0
         else:
             epochs_without_improvement += 1
-            if epochs_without_improvement == config.early_stopping_patience:
-                print(f"early stopping after epoch {epoch}")
-                break
 
+        metrics: EpochMetrics = {
+            "epoch": epoch,
+            "train_rmse": train_rmse,
+            "validation_rmse": validation_rmse,
+            "best_validation_rmse": best_rmse,
+            "best_epoch": best_epoch,
+        }
+        history.append(metrics)
+        if report_epoch is not None:
+            report_epoch(metrics)
+        if epochs_without_improvement >= config.early_stopping_patience:
+            print(f"early stopping after epoch {epoch}")
+            break
+
+    assert best_weights is not None
     model.load_state_dict(best_weights)
-    return best_epoch
-
+    return TrainingResult(best_epoch, best_rmse, history)
 
 def main() -> None:
     config: Config = Config()
@@ -115,7 +144,9 @@ def main() -> None:
         config,
     )
 
-    best_epoch: int = train_model(model, data["train"], data["validation"], config)
+    result: TrainingResult = train_model(
+        model, data["train"], data["validation"], config
+    )
     train_rmse: float = calculate_rmse(model, data["train"], config.batch_size)
     validation_rmse: float = calculate_rmse(
         model, data["validation"], config.batch_size
@@ -125,11 +156,10 @@ def main() -> None:
     model_path: Path = OUTPUT_DIR / "best_model.pt"
     torch.save(model.state_dict(), model_path)
 
-    print(f"\nbest epoch: {best_epoch}")
+    print(f"\nbest epoch: {result.best_epoch}")
     print(f"train RMSE: {train_rmse:,.0f}")
     print(f"validation RMSE: {validation_rmse:,.0f}")
     print(f"wrote {model_path}")
-
 
 if __name__ == "__main__":
     main()
