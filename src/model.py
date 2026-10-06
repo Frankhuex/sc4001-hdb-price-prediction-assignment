@@ -13,30 +13,30 @@ class PriceModel(nn.Module):
         config: Config,
     ) -> None:
         super().__init__()
-        self.embeddings = nn.ModuleList(
+        self.embeddings: nn.ModuleList = nn.ModuleList(
             nn.Embedding(cardinality, width)
             for cardinality, width in zip(cardinalities, config.embedding_dims)
         )
 
-        input_width = sum(config.embedding_dims) + len(config.continuous_features)
-        self.mlp = nn.Sequential(
+        input_width: int = sum(config.embedding_dims) + len(config.continuous_features)
+        self.mlp: nn.Sequential = nn.Sequential(
             nn.Linear(input_width, config.hidden_width),
             nn.LayerNorm(config.hidden_width),
             nn.ReLU(),
             nn.Linear(config.hidden_width, 1),
         )
 
-        self.target_mean = target_mean
-        self.target_std = target_std
+        self.target_mean: float = target_mean
+        self.target_std: float = target_std
 
     def forward(
         self, categorical: torch.Tensor, continuous: torch.Tensor
     ) -> torch.Tensor:
-        embedded = [
+        embedded: list[torch.Tensor] = [
             embedding(categorical[:, index])
             for index, embedding in enumerate(self.embeddings)
         ]
-        features = torch.cat(embedded + [continuous], dim=1)
+        features: torch.Tensor = torch.cat(embedded + [continuous], dim=1)
         return self.mlp(features).squeeze(1)
 
     def predict_price(
