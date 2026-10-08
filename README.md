@@ -128,6 +128,30 @@ best validation RMSE; ties retain the first lambda in ascending order.
 `a1_best_epoch` records the A1-selected retraining duration separately
 from the best validation epoch of this search.
 
+## A3(b): Selected wide-and-deep five-seed evaluation
+
+```bash
+mkdir -p outputs/a3_b
+uv run python -u src/wide_evaluate.py > outputs/a3_b/run.log 2>&1
+```
+
+The selected lambda from A3(a) is fixed. Five fresh models use seeds
+42--46, combined 2017--2021 training data, and A1's selected retraining
+length (13 epochs), rather than selecting another duration using test
+performance. The 2022 test set is evaluated once after each run. Outputs
+include `results.csv`, `summary.csv` (mean and sample SD, ddof=1),
+`paired_comparison.csv`, `test_rmse.png`, `test_r2.png`, and per-seed weights,
+training histories, and metadata under `outputs/a3_b/`.
+
+The five-seed A1-architecture baseline recorded in A2 is reused as the
+matched comparison; its preprocessing, configuration, seeds, and epoch
+count are checked before training. `baseline_reference.csv` preserves
+these reference values. The original A1(d) single-seed metrics are also
+included as dashed reference lines in the plots and recorded in metadata.
+Its shuffle protocol differs, so compare the paired five-seed results
+when assessing the branch's effect. For selected lambda zero, the script
+also verifies that shared trained weights match each paired baseline.
+
 ## Original baseline
 
 To run one experiment using the original configuration:
@@ -150,5 +174,6 @@ hyperparameters are defined in `src/config.py`.
 | `src/baseline.py` | Shared training and RMSE evaluation, plus the single-run baseline entry point |
 | `src/grid_search.py` | A1(b) Ray grid search and result export |
 | `src/retrain.py` | A1(c) curves and A1(d) combined-data retraining and test evaluation |
+| `src/wide_evaluate.py` | A3(b) selected-model five-seed test evaluation and baseline comparison |
 | `src/wide_search.py` | A3(a) validation search for the wide branch coefficient |
 | `src/ablation.py` | A2 five-seed baseline and ablation comparison, statistics, and plots |

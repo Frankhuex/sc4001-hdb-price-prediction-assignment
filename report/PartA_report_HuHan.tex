@@ -332,6 +332,70 @@ $\lambda$ & Best validation RMSE (SGD) & Best epoch & Epochs run \\
 \end{itemize}
 
 \subsection*{(b) Five-Seed Evaluation}
+\begin{itemize}
+\item \textbf{Protocol:} The selected $\lambda=0$ model was retrained from scratch on 2017--2021 using seeds $\{42,43,44,45,46\}$. All runs retained the A1 settings and fixed 13-epoch duration, with preprocessing fitted on the combined set. Each final model was evaluated once on the 2022 test set.
+\item \textbf{Baseline comparison:} The five A1-architecture baseline runs recorded in A2 were reused with matching seeds, preprocessing, optimiser settings, epochs, and minibatch orders. The original A1(d) single-seed result is also shown as a separate reference.
+\end{itemize}
+\textbf{Per-seed results:} RMSE values are in SGD.
+\begin{center}
+\begin{tabular}{rrrr}
+\toprule
+Seed & Training RMSE & Test RMSE & Test $R^2$ \\
+\midrule
+42 & 37,926.73 & 98,124.06 & 0.6679 \\
+43 & 38,258.40 & 97,431.21 & 0.6725 \\
+44 & 37,931.61 & 101,068.42 & 0.6476 \\
+45 & 37,476.46 & 97,601.34 & 0.6714 \\
+46 & 38,618.59 & 106,030.81 & 0.6122 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\textbf{Comparison:} Five-seed results are mean $\pm$ sample SD ($n=5$).
+\begin{center}
+\small
+\begin{tabular}{lcc}
+\toprule
+Model & Test RMSE (SGD) & Test $R^2$ \\
+\midrule
+A1(d) baseline ($n=1$) & 90,595.88 & 0.7169 \\
+Baseline ($n=5$, A2) & $100,051.17 \pm 3,652.75$ & $0.6543 \pm 0.0256$ \\
+Wide-and-deep ($\lambda=0$) & $100,051.17 \pm 3,652.75$ & $0.6543 \pm 0.0256$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\textbf{Plots:} Bars show five-seed means with sample SD; dashed lines show the A1(d) single-seed reference.
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=0.46\linewidth,height=3.8cm,ybar,bar width=18pt,
+    xmin=0.5,xmax=2.5,ymin=0,ymax=115,ylabel={Test RMSE (thousand SGD)},
+    xtick={1,2},xticklabels={Baseline,Wide ($\lambda=0$)},
+    tick label style={font=\scriptsize},label style={font=\footnotesize},
+    legend style={font=\scriptsize},legend pos=south west,grid=major,scaled y ticks=false]
+\addplot+[fill=blue!45,draw=blue,error bars/.cd,y dir=both,y explicit]
+coordinates {(1,100.05116733) +- (0,3.65275384) (2,100.05116733) +- (0,3.65275384)};
+\addlegendentry{Mean $\pm$ SD}
+\addplot[gray,dashed,sharp plot,no marks] coordinates {(0.5,90.59588351) (2.5,90.59588351)};
+\addlegendentry{A1(d), $n=1$}
+\end{axis}
+\end{tikzpicture}
+\begin{tikzpicture}
+\begin{axis}[width=0.46\linewidth,height=3.8cm,ybar,bar width=18pt,
+    xmin=0.5,xmax=2.5,ymin=0,ymax=0.8,ylabel={Test $R^2$},
+    xtick={1,2},xticklabels={Baseline,Wide ($\lambda=0$)},
+    tick label style={font=\scriptsize},label style={font=\footnotesize},
+    legend style={font=\scriptsize},legend pos=south west,grid=major,scaled y ticks=false]
+\addplot+[fill=blue!45,draw=blue,error bars/.cd,y dir=both,y explicit]
+coordinates {(1,0.65431560) +- (0,0.02562876) (2,0.65431560) +- (0,0.02562876)};
+\addlegendentry{Mean $\pm$ SD}
+\addplot[gray,dashed,sharp plot,no marks] coordinates {(0.5,0.71686762) (2.5,0.71686762)};
+\addlegendentry{A1(d), $n=1$}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\begin{itemize}
+\item \textbf{Result:} Mean test RMSE was 100,051.17 $\pm$ 3,652.75 SGD and mean $R^2$ was 0.6543 $\pm$ 0.0256. All five paired results and the trained embedding/MLP weights matched the baseline exactly, as expected when $\lambda=0$ disables the wide contribution. The selected model therefore provides no improvement over the matched baseline.
+\item \textbf{A1 reference:} A1(d) reported 90,595.88 SGD and $R^2=0.7169$ for one seed with a different shuffle protocol. Its lower RMSE cannot be attributed to the architecture difference; the matched five-seed comparison isolates that difference.
+\end{itemize}
 
 \subsection*{(c) Discussion}
 
