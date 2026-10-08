@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.29)  8 OCT 2026 22:23
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.29)  8 OCT 2026 22:38
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -697,7 +697,7 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 100
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [2{/usr/local/texlive/2024/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.e
 nc}] [3] [4]
-[5] [6] (./PartA_report_HuHan.aux)
+[5] [6] [7] (./PartA_report_HuHan.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
@@ -731,10 +731,10 @@ f-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2024/texmf-
 dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2024/texmf-di
 st/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2024/texmf-dis
 t/fonts/type1/public/cm-super/sfrm1000.pfb>
-Output written on PartA_report_HuHan.pdf (6 pages, 265334 bytes).
+Output written on PartA_report_HuHan.pdf (7 pages, 266250 bytes).
 PDF statistics:
- 127 PDF objects out of 1000 (max. 8388607)
- 78 compressed objects within 1 object stream
+ 132 PDF objects out of 1000 (max. 8388607)
+ 82 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 

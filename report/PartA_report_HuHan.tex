@@ -398,6 +398,13 @@ coordinates {(1,0.65431560) +- (0,0.02562876) (2,0.65431560) +- (0,0.02562876)};
 \end{itemize}
 
 \subsection*{(c) Discussion}
+\textbf{Mechanism:} The linear branch provides a shorter gradient path to the shared embeddings, 
+which may improve optimisation when gradients through the MLP are attenuated. 
+Due to its simplicity, it can learn additive patterns alongside the MLP's nonlinear relationships, potentially improving generalisation. 
+
+\textbf{Evidence:} However, all positive $\lambda$ values produced higher best validation RMSE than $\lambda=0$, meaning these results provide no evidence of a benefit from the linear branch under the tested settings.
+
+\textbf{Limitations:} Gradient norms were not measured, so potential relief of vanishing gradients cannot be verified.
 
 \section*{A4}
 
