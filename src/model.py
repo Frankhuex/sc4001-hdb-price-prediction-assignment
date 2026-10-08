@@ -15,6 +15,7 @@ class PriceModel(nn.Module):
         *,
         use_embeddings: bool = True,
         activation: Literal["relu", "sigmoid"] = "relu",
+        wide_lambda: float | None = None,
     ) -> None:
         super().__init__()
         self.embeddings: nn.ModuleList = nn.ModuleList(
@@ -35,6 +36,9 @@ class PriceModel(nn.Module):
             nn.Linear(config.hidden_width, 1),
         )
 
+        self.wide_lambda: float | None = wide_lambda
+        self.wide: nn.Linear | None = nn.Linear(input_width, 1) if wide_lambda is not None else None
+
         self.target_mean: float = target_mean
         self.target_std: float = target_std
 
@@ -46,7 +50,10 @@ class PriceModel(nn.Module):
             for index, embedding in enumerate(self.embeddings)
         ]
         features: torch.Tensor = torch.cat(embedded + [continuous], dim=1)
-        return self.mlp(features).squeeze(1)
+        output: torch.Tensor = self.mlp(features).squeeze(1)
+        if self.wide is not None and self.wide_lambda is not None:
+            output = output + self.wide_lambda * self.wide(features).squeeze(1)
+        return output
 
     def predict_price(
         self, categorical: torch.Tensor, continuous: torch.Tensor

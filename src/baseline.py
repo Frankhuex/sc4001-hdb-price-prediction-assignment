@@ -71,9 +71,11 @@ def train_model(
     validation_data: TensorDataset,
     config: Config,
     report_epoch: Callable[[EpochMetrics], None] | None = None,
+    *, shuffle_seed: int | None = None,
 ) -> TrainingResult:
     train_loader: DataLoader[tuple[torch.Tensor, ...]] = DataLoader(
-        train_data, config.batch_size, shuffle=True
+        train_data, config.batch_size, shuffle=True,
+        generator=torch.Generator().manual_seed(shuffle_seed) if shuffle_seed is not None else None
     )
     loss_function: nn.MSELoss = nn.MSELoss()
     optimiser: torch.optim.Adam = torch.optim.Adam(

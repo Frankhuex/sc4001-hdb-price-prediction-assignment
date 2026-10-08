@@ -105,6 +105,29 @@ contains training `history.csv`, `final_model.pt`, and `metadata.json`.
 Shared preprocessing statistics and experiment settings are in the top-level
 `metadata.json`; reproduce category maps with combined-data `prepare_data`.
 
+## A3(a): Wide-and-deep lambda search
+
+```bash
+mkdir -p outputs/a3_a
+uv run python -u src/wide_search.py > outputs/a3_a/run.log 2>&1
+```
+
+The script searches lambda `{0, 0.25, 0.5, 1, 2}` with the A1-selected
+hidden width and embedding dimensions. Both branches share the concatenated
+embeddings and continuous inputs. Their standardized outputs are summed
+before one conversion to SGD. The five trials share initial weights and
+an independent seeded minibatch generator. Training uses 2017--2020,
+validation uses 2021, and test metrics are never accessed for selection.
+Adam, learning rate, batch size, maximum epochs, and early-stopping settings
+remain those of A1. This controlled shuffle protocol differs from A1(b).
+
+`outputs/a3_a/` contains `run.log`, `search_results.csv`, and a directory
+per lambda with `best_model.pt`, `history.csv`, and `metadata.json`.
+The winning artifacts are copied to `selected/`. Selection uses the lowest
+best validation RMSE; ties retain the first lambda in ascending order.
+`a1_best_epoch` records the A1-selected retraining duration separately
+from the best validation epoch of this search.
+
 ## Original baseline
 
 To run one experiment using the original configuration:
@@ -127,4 +150,5 @@ hyperparameters are defined in `src/config.py`.
 | `src/baseline.py` | Shared training and RMSE evaluation, plus the single-run baseline entry point |
 | `src/grid_search.py` | A1(b) Ray grid search and result export |
 | `src/retrain.py` | A1(c) curves and A1(d) combined-data retraining and test evaluation |
+| `src/wide_search.py` | A3(a) validation search for the wide branch coefficient |
 | `src/ablation.py` | A2 five-seed baseline and ablation comparison, statistics, and plots |

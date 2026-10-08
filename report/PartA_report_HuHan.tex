@@ -19,7 +19,7 @@
 \end{center}
 
 \section*{Generative AI Declaration}
-I used \textbf{Codex} to assist with the generation of some code segments
+I used \textbf{Codex} to assist with the generation of some of the code segments
 during the development of this assignment. The tool was used primarily to
 generate initial code templates and to obtain suggestions for implementing
 specific programming tasks. All AI-generated code was carefully reviewed,
@@ -32,7 +32,7 @@ I take full responsibility for the accuracy, functionality, and academic
 integrity of the submitted solution.
 
 \textbf{Generative AI Tool Used:} Codex\\
-\textbf{Purpose of Use:} Programming assistance and LaTeX formatting\\
+\textbf{Purpose of Use:} Programming assistance, README.md generation, and LaTeX formatting\\
 \textbf{Verification Method:} Manual code review, testing, debugging, and
 validation against assignment requirements\\
 
@@ -308,6 +308,32 @@ coordinates {(1,0.654316) +- (0,0.025629) (2,0.549227) +- (0,0.042678) (3,0.6708
 \end{itemize}
 
 \section*{A3}
+\subsection*{(a) Selecting $\lambda$}
+\begin{itemize}
+\item \textbf{Architecture:} Both branches share the 54-dimensional input. The deep branch retains the A1 MLP ($h=128$, $d=12$); the wide branch is a single $54\to1$ linear layer. Outputs are combined as $\mathrm{MLP}(x)+\lambda\,\mathrm{Linear}(x)$ before inverse target scaling.
+\item \textbf{Search protocol:} $\lambda\in\{0,0.25,0.5,1,2\}$; seed 42; training on 2017--2020 and validation on 2021. Adam, learning rate 0.01, batch size 512, maximum 20 epochs, and early-stopping patience 4 with minimum improvement $10^{-4}$ were retained. All candidates used identical initial weights and minibatch orders.
+\item \textbf{Selection criterion:} Lowest validation RMSE achieved during training. Results for all five candidates are shown below.
+\end{itemize}
+\begin{center}
+\begin{tabular}{rrrr}
+\toprule
+$\lambda$ & Best validation RMSE (SGD) & Best epoch & Epochs run \\
+\midrule
+0 & 59,720.34 & 4 & 8 \\
+0.25 & 60,935.69 & 4 & 8 \\
+0.5 & 62,760.50 & 4 & 8 \\
+1 & 62,025.90 & 6 & 10 \\
+2 & 63,258.46 & 6 & 10 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item \textbf{Optimal value:} $\lambda=0$, with validation RMSE 59,720.34 SGD at epoch 4; training stopped at epoch 8. The linear branch contributes nothing at this value, so the selected predictor reduces to the baseline. Positive coefficients did not improve validation performance in this search.
+\end{itemize}
+
+\subsection*{(b) Five-Seed Evaluation}
+
+\subsection*{(c) Discussion}
 
 \section*{A4}
 
