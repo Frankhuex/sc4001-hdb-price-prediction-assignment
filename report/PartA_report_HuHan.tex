@@ -1,47 +1,27 @@
 \documentclass[10pt,a4paper]{article}
 \usepackage[margin=18mm]{geometry}
-\usepackage{amsmath,amssymb}
-\usepackage{graphicx}
-\usepackage{booktabs}
-\usepackage{tikz}
-\usepackage{pgfplots}
-\pgfplotsset{compat=1.18}
-\usetikzlibrary{arrows.meta}
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{5pt}
-
+\usepackage{amsmath,amssymb,graphicx,booktabs,tikz,pgfplots,enumitem,titlesec}
+\pgfplotsset{compat=1.18}\usetikzlibrary{arrows.meta}
+\setlength{\parindent}{0pt}\setlength{\parskip}{3pt}
+\setlist[itemize]{nosep,topsep=2pt,leftmargin=*}
+\titlespacing*{\section}{0pt}{7pt}{4pt}\titlespacing*{\subsection}{0pt}{5pt}{3pt}
 \begin{document}
+\begin{center}{\large\bfseries SC4001 -- Part A: HDB Resale Price Regression}\\Hu Han \quad U2320036H\end{center}
 
-\begin{center}
-  {\Large\bfseries SC4001 Neural Networks and Deep Learning}\\[5pt]
-  {\large Part A: HDB Resale Price Regression}\\[5pt]
-  Hu Han \quad | \quad Matriculation Number: U2320036H
-\end{center}
+\textbf{Generative AI Declaration:}
 
-\section*{Generative AI Declaration}
-I used \textbf{Codex} to assist with the generation of some of the code segments
-during the development of this assignment. The tool was used primarily to
-generate initial code templates and to obtain suggestions for implementing
-specific programming tasks. All AI-generated code was carefully reviewed,
-modified where necessary, integrated into the overall solution by me, and
-tested to ensure it met the assignment requirements. I verified the correctness
-of the generated code through manual inspection, compilation/execution testing,
-debugging, and comparison with the assignment specifications and relevant course
-materials. The final submitted work represents my own understanding and effort.
-I take full responsibility for the accuracy, functionality, and academic
-integrity of the submitted solution.
+I used \textbf{Codex} to assist with the generation of selected code segments during the development of this assignment. The tool was used primarily to generate initial code templates and to obtain suggestions for implementing specific programming tasks. All AI-generated code was carefully reviewed, modified where necessary, integrated into the overall solution by me, and tested to ensure it met the assignment requirements. I verified the correctness of the generated code through manual inspection, compilation/execution testing, debugging, and comparison with the assignment specifications and relevant course materials. The final submitted work represents my own understanding and effort. I take full responsibility for the accuracy, functionality, and academic integrity of the submitted solution.
 
-\textbf{Generative AI Tool Used:} Codex\\
-\textbf{Purpose of Use:} Programming assistance, README.md generation, and LaTeX formatting\\
-\textbf{Verification Method:} Manual code review, testing, debugging, and
-validation against assignment requirements\\
+\textbf{Generative AI Tool Used:} Codex
 
-\newpage
+\textbf{Purpose of Use:} Code generation and programming assistance
+
+\textbf{Verification Method:} Manual code review, testing, debugging, and validation against assignment requirements
+
 \section*{A1}
-\subsection*{(a) Block Diagram \& Parameter Count}
-\textbf{Block Diagram:}
+\subsection*{(a) Block Diagram and Trainable Parameters}
 \begin{center}
-\resizebox{\linewidth}{!}{%
+\resizebox{0.88\linewidth}{!}{%
 \begin{tikzpicture}[
   block/.style={draw, rounded corners=2pt, align=center,
     text width=2.45cm, minimum width=2.7cm,
@@ -100,332 +80,133 @@ validation against assignment requirements\\
 }
 \end{center}
 
-Explanation:
 
-\begin{itemize}
-  \setlength{\itemsep}{0pt}
-  \setlength{\parskip}{0pt}
-  \item Each categorical embedding has dimension 8.
-  \item The hidden layer has width 64.
-  \item $B$ denotes the batch size.
-  \item $C_j$ counts the known training categories for feature $j$, plus one
-    extra category with ID 0 for unknown values.
-\end{itemize}
 
-\textbf{Number of trainable parameters:}
+\textbf{Dimensions:} $B$ is batch size. The baseline uses four 8-dimensional embeddings and six continuous features, giving $D=4\times8+6=38$, with hidden width 64. Each $C_j$ equals the number of known training categories plus one for unknown ID 0.
+\begin{center}\small\begin{tabular}{lrr}\toprule Categorical feature & Training categories & $C_j$ \\ \midrule
+month &12&13\\town&26&27\\flat\_model\_type&43&44\\storey\_range&17&18\\\bottomrule\end{tabular}\end{center}
+\begingroup\small
 
-Each categorical feature $j$ uses an embedding table with $C_j$ rows and 8
-trainable values per row. We add one extra category for unknown category for each feature, which gives:
-\[
-C_j = \text{number of categories in feature } j + 1.
-\]
-
-Calculate $C_j$ for every categorical features:
-
-\begin{center}
-\begin{tabular}{lrc}
-\toprule
-Categorical feature & Number of training categories & $C_j$ calculation\\
-\midrule
-\texttt{month} & 12 & $C_1=12+1=13$\\
-\texttt{town} & 26 & $C_2=26+1=27$\\
-\texttt{flat\_model\_type} & 43 & $C_3=43+1=44$\\
-\texttt{storey\_range} & 17 & $C_4=17+1=18$\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-Six continuous features: \texttt{dist\_to\_nearest\_stn},
-\texttt{dist\_to\_dhoby}, \texttt{degree\_centrality},
-\texttt{eigenvector\_centrality}, \texttt{remaining\_lease\_years}, and
-\texttt{floor\_area\_sqm}. 
-
-Each contributes one input value. Concatenating the four 8-dimensional embeddings with these six values gives the total input dimension $D$:
-\[
-  D=4\times8+6=38.
-\]
-Layer-by-layer trainable parameter counts:
-
-\begin{center}
-\begin{tabular}{lrr}
-\toprule
-Component & Calculation & Trainable parameters\\
-\midrule
-Four embedding tables & $(13+27+44+18)\times8$ & 816\\
-Linear $(38,64)$ & $38\times64+64$ & 2,496\\
-LayerNorm $(64)$ & $64+64$ & 128\\
-Linear $(64,1)$ & $64\times1+1$ & 65\\
-\midrule
-\textbf{Total} & $816+2{,}496+128+65$ & \textbf{3,505}\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-Explanation:
-
-\begin{itemize}
-\item Each linear layer includes a weight matrix and a bias vector. 
-\item LayerNorm has 64 learnable scale parameters and 64 learnable shift parameters. 
-\item Concatenation, ReLU, squeezing, and inverse target standardization add no trainable parameters.
-\end{itemize}
-
+\textbf{Continuous features:} dist\_to\_nearest\_stn, dist\_to\_dhoby, degree\_centrality, eigenvector\_centrality, remaining\_lease\_years, floor\_area\_sqm.\par\endgroup
+\begin{center}\small\begin{tabular}{lrr}\toprule Component & Calculation & Parameters\\\midrule
+Embeddings & $8(13+27+44+18)$ &816\\Linear $(38,64)$ &$38\times64+64$&2,496\\LayerNorm $(64)$ &$64+64$&128\\Linear $(64,1)$ &$64+1$&65\\\midrule Total &$816+2,496+128+65$&\textbf{3,505}\\\bottomrule\end{tabular}\end{center}
+Linear layers include biases; LayerNorm includes learnable scale and shift. The remaining operations add no trainable parameters.
 \subsection*{(b) Hyperparameter Search}
 
-\begin{itemize}
-\item \textbf{Search method:} Ray Tune grid search over 25 combinations: Hidden-layer width $h\in\{16,32,64,128,256\}$ and
-embedding dimension $d\in\{2,4,8,12,16\}$ shared by all four categorical features.
-\item \textbf{Data split:} Training on 2017--2020 and validation on 2021.
-\item \textbf{Training settings:} Seed 42; Adam with learning rate 0.01;
-batch size 512; maximum 20 epochs; early-stopping patience 4 and minimum validation RMSE improvement $10^{-4}$.
-\item \textbf{Best result:} $h=128$, $d=12$; validation RMSE
-59,766.91 SGD at epoch 13. Training stopped at epoch 17 and epoch-13 weights were retained.
-\end{itemize}
-
+\textbf{Search:} Ray Tune evaluated all 25 pairs of $h\in\{16,32,64,128,256\}$ and $d\in\{2,4,8,12,16\}$, using the same $d$ for four categorical features. Training used 2017--2020; validation used 2021. Settings were seed 42, Adam, learning rate 0.01, batch size 512, maximum 20 epochs, and early stopping with patience 4 and minimum validation RMSE improvement $10^{-4}$.
 \subsection*{(c) Selected Configuration}
-\begin{itemize}
-\item \textbf{Optimal hyperparameters:} Hidden-layer width 128; embedding dimension 12 for each categorical feature.
-\item \textbf{Best validation RMSE:} 59,766.91 SGD at epoch 13.
-\item \textbf{Learning curves:} Training and validation RMSE are shown below.
-\end{itemize}
-\begin{center}
-\begin{tikzpicture}
-\begin{axis}[width=0.88\linewidth,height=5cm,xlabel={Epoch},ylabel={RMSE (SGD)},
-    grid=major,legend pos=north east,scaled y ticks=false,
-    tick label style={font=\footnotesize},legend style={font=\footnotesize}]
-\addplot[blue,mark=*,mark size=1pt] coordinates {(1,49786.64) (2,35806.02) (3,34152.35) (4,33512.15) (5,32984.00) (6,32527.39) (7,32145.88) (8,31840.60) (9,31677.56) (10,31533.72) (11,31447.24) (12,31343.24) (13,31207.16) (14,30881.99) (15,30834.08) (16,30744.51) (17,30627.12)};
-\addlegendentry{Training}
-\addplot[orange,mark=*,mark size=1pt] coordinates {(1,67977.73) (2,65985.09) (3,69116.43) (4,67786.15) (5,65973.66) (6,64998.60) (7,65248.47) (8,64820.98) (9,64334.48) (10,71777.88) (11,63401.93) (12,65172.15) (13,59766.91) (14,64428.73) (15,62303.98) (16,65328.07) (17,69319.56)};
-\addlegendentry{Validation}
-\end{axis}
-\end{tikzpicture}
-\end{center}
 
+\textbf{Selection:} The lowest best validation RMSE was \textbf{59,766.91 SGD}, achieved by $h=128$, $d=12$ at epoch 13. Training stopped at epoch 17 and epoch-13 weights were retained. The left plot below shows this model's training and validation curves; training RMSE aggregates batches during updates.
 \subsection*{(d) Retraining and Test Performance}
-\begin{itemize}
-\item \textbf{Retraining:} A fresh model with the selected architecture was trained on 2017--2021 (116,427 records), with preprocessing refitted on this combined set. Seed 42 and the A1(b) optimiser settings were retained.
-\item \textbf{Epoch count:} Fixed at 13 using the best validation epoch from A1(c).
-\item \textbf{Evaluation:} Training and testing RMSE were computed after each epoch in SGD. The 2022 test set contained 26,702 records.
-\item \textbf{Final test performance:} RMSE = 90,595.88 SGD; $R^2=0.716868$.
-\end{itemize}
+
+\textbf{Retraining:} A fresh selected model was trained on 116,427 records from 2017--2021, with preprocessing refitted on that set. Adam settings and seed 42 were retained. The duration was fixed at the validation-selected 13 epochs; test metrics never controlled training. An independent seed-42 shuffle generator matches subsequent experiments.
+
+\textbf{Final evaluation:} On 26,702 test records from 2022, RMSE was \textbf{98,124.06 SGD} and $R^2=\mathbf{0.667858}$; training RMSE was 37,926.73 SGD. The right plot shows end-of-epoch training/testing RMSE.
 \begin{center}
-\begin{tikzpicture}
-\begin{axis}[width=0.88\linewidth,height=5cm,xlabel={Epoch},ylabel={RMSE (SGD)},
-    grid=major,legend pos=north east,scaled y ticks=false,
-    tick label style={font=\footnotesize},legend style={font=\footnotesize}]
-\addplot[blue,mark=*,mark size=1pt] coordinates {(1,44476.87) (2,43713.22) (3,40731.09) (4,41047.01) (5,39436.78) (6,39715.32) (7,39363.31) (8,39106.39) (9,38749.19) (10,39389.33) (11,39262.43) (12,38150.43) (13,38591.78)};
-\addlegendentry{Training}
-\addplot[orange,mark=*,mark size=1pt] coordinates {(1,107836.35) (2,92796.21) (3,104438.02) (4,97145.51) (5,99558.52) (6,104728.08) (7,104755.35) (8,98801.33) (9,99991.73) (10,92130.27) (11,92354.49) (12,101851.27) (13,90595.88)};
-\addlegendentry{Test}
-\end{axis}
-\end{tikzpicture}
+\begin{tikzpicture}\begin{axis}[width=0.47\linewidth,height=3.5cm,title={Selected model},xlabel={Epoch},ylabel={RMSE (thousand SGD)},tick label style={font=\scriptsize},label style={font=\scriptsize},title style={font=\footnotesize},legend style={font=\scriptsize},legend pos=north east,grid=major]
+\addplot[blue,mark=*,mark size=0.7pt] coordinates {(1,49.78664) (2,35.80602) (3,34.15235) (4,33.51215) (5,32.98400) (6,32.52739) (7,32.14588) (8,31.84060) (9,31.67756) (10,31.53372) (11,31.44724) (12,31.34324) (13,31.20716) (14,30.88199) (15,30.83408) (16,30.74451) (17,30.62712)};\addlegendentry{Training}
+\addplot[orange,mark=*,mark size=0.7pt] coordinates {(1,67.97773) (2,65.98509) (3,69.11643) (4,67.78615) (5,65.97366) (6,64.99860) (7,65.24847) (8,64.82098) (9,64.33448) (10,71.77787) (11,63.40193) (12,65.17215) (13,59.76691) (14,64.42873) (15,62.30398) (16,65.32807) (17,69.31956)};\addlegendentry{Validation};
+\end{axis}\end{tikzpicture}\begin{tikzpicture}\begin{axis}[width=0.47\linewidth,height=3.5cm,title={Combined-data retraining},xlabel={Epoch},ylabel={RMSE (thousand SGD)},tick label style={font=\scriptsize},label style={font=\scriptsize},title style={font=\footnotesize},legend style={font=\scriptsize},legend pos=north east,grid=major]
+\addplot[blue,mark=*,mark size=0.7pt] coordinates {(1,43.99480) (2,41.81389) (3,41.01590) (4,40.22608) (5,40.45000) (6,39.14908) (7,39.38920) (8,38.63598) (9,38.49450) (10,38.63140) (11,38.42342) (12,38.53959) (13,37.92673)};\addlegendentry{Training}
+\addplot[orange,mark=*,mark size=0.7pt] coordinates {(1,106.47820) (2,99.92550) (3,104.46603) (4,101.49854) (5,107.01453) (6,105.54139) (7,99.09192) (8,98.17899) (9,98.76303) (10,95.90090) (11,99.29492) (12,97.89785) (13,98.12406)};\addlegendentry{Test};
+\end{axis}\end{tikzpicture}
 \end{center}
-
 \subsection*{(e) Discussion}
-\begin{itemize}
-\item \textbf{Configuration choice:} $(h,d)=(128,12)$ achieved the lowest validation RMSE (59,766.91 SGD), improving on the original $(64,8)$ configuration (63,422.46 SGD) by 5.76\%. The runner-up $(256,2)$ scored 59,926.48 SGD, only 159.58 SGD higher.
-\item \textbf{Capacity:} Larger widths and embeddings did not consistently improve validation RMSE. For example, at $h=128$, increasing $d$ from 12 to 16 worsened the best RMSE to 65,599.97 SGD.
-\item \textbf{Overfitting evidence:} After epoch 13, training RMSE declined from 31,207.16 to 30,627.12 SGD while validation RMSE rose from 59,766.91 to 69,319.56 SGD by epoch 17, supporting early stopping and indicating overfitting in later epochs.
-\item \textbf{Generalisation:} Retraining ended with training RMSE 38,591.78 SGD and test RMSE 90,595.88 SGD. This gap indicates limited generalisation; changes between the training years and 2022 may also contribute.
-\end{itemize}
 
+\textbf{Capacity:} The selected configuration improved validation RMSE over $(64,8)$ (63,422.46 SGD) by 5.76\%. The runner-up $(256,2)$ scored 59,926.48 SGD, only 159.58 SGD higher. Larger capacity did not consistently help: at $h=128$, $d=16$ scored 65,599.97 SGD.
+
+\textbf{Fit and generalisation:} From epochs 13 to 17, training RMSE declined from 31,207.16 to 30,627.12 SGD while validation RMSE rose from 59,766.91 to 69,319.56 SGD, indicating late overfitting and supporting early stopping. The final training/test gap suggests limited generalisation; temporal changes may contribute, so the gap alone cannot isolate overfitting. The curves do not suggest simple capacity-based underfitting.
 \section*{A2}
-\begin{itemize}
-\item \textbf{Protocol:} All three models were trained from scratch on 2017--2021 for 13 epochs with $h=128$, $d=12$ where applicable, Adam (learning rate 0.01), and batch size 512. Preprocessing was fitted on the combined training set.
-\item \textbf{Seeds and evaluation:} Seeds $\{42,43,44,45,46\}$ were used for each model, with identical minibatch orders for matching seeds. Each run was evaluated once on the 2022 test set. Results are mean $\pm$ sample SD ($n=5$); error bars show SD. The independent shuffle generator differs from A1(d), so its seed-42 result can differ.
-\end{itemize}
-\textbf{Per-seed results:} RMSE values are in SGD; all runs used 13 epochs.
-\begin{center}
-\small
-\begin{tabular}{lrrrr}
-\toprule
-Model & Seed & Training RMSE & Test RMSE & Test $R^2$ \\
-\midrule
+
+\textbf{Protocol:} Baseline and both ablations were trained from scratch on 2017--2021 using seeds $\{42,43,44,45,46\}$, $h=128$, $d=12$ where applicable, and the A1 settings and 13 epochs. Preprocessing and minibatch orders were shared for matching seeds. Each final model was evaluated once on 2022. Results are mean $\pm$ sample SD ($n=5$).
+
+\textbf{Per-seed results:} RMSE in SGD.
+\begin{center}\small\begin{tabular}{lrrrr}\toprule Model & Seed & Train RMSE & Test RMSE & Test $R^2$\\\midrule
 Baseline & 42 & 37,926.73 & 98,124.06 & 0.6679 \\
 Baseline & 43 & 38,258.40 & 97,431.21 & 0.6725 \\
 Baseline & 44 & 37,931.61 & 101,068.42 & 0.6476 \\
 Baseline & 45 & 37,476.46 & 97,601.34 & 0.6714 \\
 Baseline & 46 & 38,618.59 & 106,030.81 & 0.6122 \\
-\midrule
 Without embeddings & 42 & 54,406.94 & 114,211.19 & 0.5500 \\
 Without embeddings & 43 & 55,308.87 & 117,697.22 & 0.5221 \\
 Without embeddings & 44 & 55,730.65 & 119,940.38 & 0.5037 \\
 Without embeddings & 45 & 53,933.65 & 113,674.84 & 0.5542 \\
 Without embeddings & 46 & 54,487.32 & 105,507.78 & 0.6160 \\
-\midrule
 Sigmoid & 42 & 38,004.36 & 96,090.96 & 0.6815 \\
 Sigmoid & 43 & 39,493.07 & 109,142.47 & 0.5891 \\
 Sigmoid & 44 & 38,728.61 & 89,514.55 & 0.7236 \\
 Sigmoid & 45 & 36,920.54 & 98,480.10 & 0.6654 \\
 Sigmoid & 46 & 38,093.72 & 94,102.55 & 0.6945 \\
-\bottomrule
-\end{tabular}
-\end{center}
-\textbf{Five-seed summary:}
-\begin{center}
-\begin{tabular}{lcc}
-\toprule
-Model & Test RMSE (SGD) & Test $R^2$ \\
-\midrule
-Baseline & $100,051.17 \pm 3,652.75$ & $0.6543 \pm 0.0256$ \\
-Without embeddings & $114,206.28 \pm 5,500.29$ & $0.5492 \pm 0.0427$ \\
-Sigmoid & $97,466.13 \pm 7,310.91$ & $0.6708 \pm 0.0504$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-\begin{center}
-\begin{tikzpicture}
-\begin{axis}[width=0.46\linewidth,height=3.8cm,ybar,bar width=12pt,
-    ymin=0,ymax=140,ylabel={Test RMSE (thousand SGD)},
-    xtick={1,2,3},xticklabels={Baseline,No emb.,Sigmoid},
-    tick label style={font=\scriptsize},label style={font=\footnotesize},
-    grid=major,scaled y ticks=false]
-\addplot+[fill=blue!45,draw=blue,error bars/.cd,y dir=both,y explicit]
-coordinates {(1,100.051167) +- (0,3.652754) (2,114.206281) +- (0,5.500293) (3,97.466128) +- (0,7.310907)};
-\end{axis}
-\end{tikzpicture}
-\begin{tikzpicture}
-\begin{axis}[width=0.46\linewidth,height=3.8cm,ybar,bar width=12pt,
-    ymin=0,ymax=0.8,ylabel={Test $R^2$},
-    xtick={1,2,3},xticklabels={Baseline,No emb.,Sigmoid},
-    tick label style={font=\scriptsize},label style={font=\footnotesize},
-    grid=major,scaled y ticks=false]
-\addplot+[fill=blue!45,draw=blue,error bars/.cd,y dir=both,y explicit]
-coordinates {(1,0.654316) +- (0,0.025629) (2,0.549227) +- (0,0.042678) (3,0.670822) +- (0,0.050425)};
-\end{axis}
-\end{tikzpicture}
-\end{center}
+\bottomrule\end{tabular}\end{center}
+\begin{center}\small\begin{tabular}{lcc}\toprule Model & Test RMSE (SGD) & Test $R^2$ \\ \midrule
+Baseline & $100,051.17\pm 3,652.75$ & $0.6543\pm 0.0256$ \\
+Without embeddings & $114,206.28\pm 5,500.29$ & $0.5492\pm 0.0427$ \\
+Sigmoid & $97,466.13\pm 7,310.91$ & $0.6708\pm 0.0504$ \\
+\bottomrule\end{tabular}\end{center}
+\begin{center}\begin{tikzpicture}\begin{axis}[width=0.47\linewidth,height=3.3cm,ybar,bar width=13pt,ymin=0,title={Mean $\pm$ SD},ylabel={Test RMSE (thousand SGD)},xtick={1,2,3},xticklabels={Baseline,No emb.,Sigmoid},tick label style={font=\scriptsize},label style={font=\scriptsize},title style={font=\footnotesize},grid=major,scaled y ticks=false]
+\addplot+[fill=blue!40,error bars/.cd,y dir=both,y explicit] coordinates {(1,100.051167) +- (0,3.652754) (2,114.206281) +- (0,5.500293) (3,97.466128) +- (0,7.310907)};\end{axis}\end{tikzpicture}\begin{tikzpicture}\begin{axis}[width=0.47\linewidth,height=3.3cm,ybar,bar width=13pt,ymin=0,title={Mean $\pm$ SD},ylabel={Test $R^2$},xtick={1,2,3},xticklabels={Baseline,No emb.,Sigmoid},tick label style={font=\scriptsize},label style={font=\scriptsize},title style={font=\footnotesize},grid=major,scaled y ticks=false]
+\addplot+[fill=blue!40,error bars/.cd,y dir=both,y explicit] coordinates {(1,0.654316) +- (0,0.025629) (2,0.549227) +- (0,0.042678) (3,0.670822) +- (0,0.050425)};\end{axis}\end{tikzpicture}\end{center}
 \subsection*{(a) Removing Categorical Embeddings}
-\begin{itemize}
-\item \textbf{Modification:} All four embedding tables were removed. The first layer changed from $54\to128$ to $6\to128$; LayerNorm, ReLU, and the output layer were retained. Trainable parameters decreased from 8,649 to 1,281.
-\item \textbf{Result:} Mean test RMSE increased by 14.15\%, and mean $R^2$ decreased from 0.6543 to 0.5492. RMSE worsened for four of five matched seeds.
-\item \textbf{Interpretation:} Categorical inputs provide useful information beyond the continuous features. Mean training RMSE also rose from 38,042.36 to 54,773.49 SGD, consistent with reduced fitting ability. This ablation removes both information and parameters, so their effects cannot be separated.
-\end{itemize}
-\subsection*{(b) Replacing ReLU with Sigmoid}
-\begin{itemize}
-\item \textbf{Modification:} Only the hidden activation changed to Sigmoid.
-\item \textbf{Result:} Mean test RMSE decreased by 2.58\%, and mean $R^2$ increased to 0.6708. However, RMSE SD increased from 3,652.75 to 7,310.91 SGD; Sigmoid improved RMSE for three of five matched seeds.
-\item \textbf{Interpretation:} Sigmoid changes the bounded hidden representation and gradient behaviour while leaving capacity unchanged in parameter count. Mean training RMSE was similar (38,248.06 versus 38,042.36 SGD). Its modest average test improvement and larger seed variation do not establish a reliable advantage over ReLU in this experiment.
-\end{itemize}
 
+\textbf{Change:} Remove all four embedding tables and change the first layer from $54\to128$ to $6\to128$, retaining LayerNorm, ReLU and output layer. Parameters decrease from 8,649 to 1,281.
+
+\textbf{Result:} Mean test RMSE rose 14.15\%; mean $R^2$ fell from 0.6543 to 0.5492. Four of five paired seeds worsened. Mean training RMSE rose from 38,042.36 to 54,773.49 SGD, supporting the value of categorical information; information loss and reduced parameter count are confounded.
+\subsection*{(b) Replacing ReLU with Sigmoid}
+
+\textbf{Change:} Replace only the hidden activation, retaining all inputs and 8,649 parameters.
+
+\textbf{Result:} Mean test RMSE fell 2.58\%, but SD increased from 3,652.75 to 7,310.91 SGD; three of five paired seeds improved. Mean training RMSE was similar (38,248.06 versus 38,042.36 SGD). The bounded activation changes representations and gradients; the modest mean improvement and larger variation do not establish a reliable advantage over ReLU.
 \section*{A3}
 \subsection*{(a) Selecting $\lambda$}
-\begin{itemize}
-\item \textbf{Architecture:} Both branches share the 54-dimensional input. The deep branch retains the A1 MLP ($h=128$, $d=12$); the wide branch is a single $54\to1$ linear layer. Outputs are combined as $\mathrm{MLP}(x)+\lambda\,\mathrm{Linear}(x)$ before inverse target scaling.
-\item \textbf{Search protocol:} $\lambda\in\{0,0.25,0.5,1,2\}$; seed 42; training on 2017--2020 and validation on 2021. Adam, learning rate 0.01, batch size 512, maximum 20 epochs, and early-stopping patience 4 with minimum improvement $10^{-4}$ were retained. All candidates used identical initial weights and minibatch orders.
-\item \textbf{Selection criterion:} Lowest validation RMSE achieved during training. Results for all five candidates are shown below.
-\end{itemize}
-\begin{center}
-\begin{tabular}{rrrr}
-\toprule
-$\lambda$ & Best validation RMSE (SGD) & Best epoch & Epochs run \\
-\midrule
+
+\textbf{Architecture:} The linear and deep branches share the 54-dimensional input. The deep branch retains the A1 MLP ($h=128$, $d=12$); the wide branch is $54\to1$. Outputs combine as $\mathrm{MLP}(x)+\lambda\mathrm{Linear}(x)$ before inverse target scaling.
+
+\textbf{Search:} Five coefficients were trained with seed 42, 2017--2020 training and 2021 validation, using A1's Adam and early-stopping settings. All candidates shared initial weights and independently seeded minibatch orders. Selection used the lowest best validation RMSE; the test set was unused.
+\begin{center}\small\begin{tabular}{rrrr}\toprule $\lambda$ & Best validation RMSE (SGD)&Best epoch&Epochs run\\\midrule
 0 & 59,720.34 & 4 & 8 \\
 0.25 & 60,935.69 & 4 & 8 \\
 0.5 & 62,760.50 & 4 & 8 \\
 1 & 62,025.90 & 6 & 10 \\
 2 & 63,258.46 & 6 & 10 \\
-\bottomrule
-\end{tabular}
-\end{center}
-\begin{itemize}
-\item \textbf{Optimal value:} $\lambda=0$, with validation RMSE 59,720.34 SGD at epoch 4; training stopped at epoch 8. The linear branch contributes nothing at this value, so the selected predictor reduces to the baseline. Positive coefficients did not improve validation performance in this search.
-\end{itemize}
+\bottomrule\end{tabular}\end{center}
 
+\textbf{Selection:} $\lambda=0$ achieved 59,720.34 SGD at epoch 4; training stopped at epoch 8. All positive coefficients performed worse. The shuffle generator differs from the original A1 validation search, so its zero-coefficient result need not reproduce A1's 59,766.91 SGD.
 \subsection*{(b) Five-Seed Evaluation}
-\begin{itemize}
-\item \textbf{Protocol:} The selected $\lambda=0$ model was retrained from scratch on 2017--2021 using seeds $\{42,43,44,45,46\}$. All runs retained the A1 settings and fixed 13-epoch duration, with preprocessing fitted on the combined set. Each final model was evaluated once on the 2022 test set.
-\item \textbf{Baseline comparison:} The five A1-architecture baseline runs recorded in A2 were reused with matching seeds, preprocessing, optimiser settings, epochs, and minibatch orders. The original A1(d) single-seed result is also shown as a separate reference.
-\end{itemize}
-\textbf{Per-seed results:} RMSE values are in SGD.
-\begin{center}
-\begin{tabular}{rrrr}
-\toprule
-Seed & Training RMSE & Test RMSE & Test $R^2$ \\
-\midrule
+
+\textbf{Protocol:} The selected $\lambda=0$ model was retrained on 2017--2021 with seeds 42--46 and A1's fixed 13 epochs, preprocessing and optimiser settings. Each final model was tested once. The A2 five-seed A1-architecture baseline supplies the matched comparison; its seed-42 weights equal the final A1(d) weights.
+\begin{center}\small\begin{tabular}{rrrr}\toprule Seed&Train RMSE (SGD)&Test RMSE (SGD)&Test $R^2$\\\midrule
 42 & 37,926.73 & 98,124.06 & 0.6679 \\
 43 & 38,258.40 & 97,431.21 & 0.6725 \\
 44 & 37,931.61 & 101,068.42 & 0.6476 \\
 45 & 37,476.46 & 97,601.34 & 0.6714 \\
 46 & 38,618.59 & 106,030.81 & 0.6122 \\
-\bottomrule
-\end{tabular}
-\end{center}
-\textbf{Comparison:} Five-seed results are mean $\pm$ sample SD ($n=5$).
-\begin{center}
-\small
-\begin{tabular}{lcc}
-\toprule
-Model & Test RMSE (SGD) & Test $R^2$ \\
-\midrule
-A1(d) baseline ($n=1$) & 90,595.88 & 0.7169 \\
-Baseline ($n=5$, A2) & $100,051.17 \pm 3,652.75$ & $0.6543 \pm 0.0256$ \\
-Wide-and-deep ($\lambda=0$) & $100,051.17 \pm 3,652.75$ & $0.6543 \pm 0.0256$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-\textbf{Plots:} Bars show five-seed means with sample SD; dashed lines show the A1(d) single-seed reference.
-\begin{center}
-\begin{tikzpicture}
-\begin{axis}[width=0.46\linewidth,height=3.8cm,ybar,bar width=18pt,
-    xmin=0.5,xmax=2.5,ymin=0,ymax=115,ylabel={Test RMSE (thousand SGD)},
-    xtick={1,2},xticklabels={Baseline,Wide ($\lambda=0$)},
-    tick label style={font=\scriptsize},label style={font=\footnotesize},
-    legend style={font=\scriptsize},legend pos=south west,grid=major,scaled y ticks=false]
-\addplot+[fill=blue!45,draw=blue,error bars/.cd,y dir=both,y explicit]
-coordinates {(1,100.05116733) +- (0,3.65275384) (2,100.05116733) +- (0,3.65275384)};
-\addlegendentry{Mean $\pm$ SD}
-\addplot[gray,dashed,sharp plot,no marks] coordinates {(0.5,90.59588351) (2.5,90.59588351)};
-\addlegendentry{A1(d), $n=1$}
-\end{axis}
-\end{tikzpicture}
-\begin{tikzpicture}
-\begin{axis}[width=0.46\linewidth,height=3.8cm,ybar,bar width=18pt,
-    xmin=0.5,xmax=2.5,ymin=0,ymax=0.8,ylabel={Test $R^2$},
-    xtick={1,2},xticklabels={Baseline,Wide ($\lambda=0$)},
-    tick label style={font=\scriptsize},label style={font=\footnotesize},
-    legend style={font=\scriptsize},legend pos=south west,grid=major,scaled y ticks=false]
-\addplot+[fill=blue!45,draw=blue,error bars/.cd,y dir=both,y explicit]
-coordinates {(1,0.65431560) +- (0,0.02562876) (2,0.65431560) +- (0,0.02562876)};
-\addlegendentry{Mean $\pm$ SD}
-\addplot[gray,dashed,sharp plot,no marks] coordinates {(0.5,0.71686762) (2.5,0.71686762)};
-\addlegendentry{A1(d), $n=1$}
-\end{axis}
-\end{tikzpicture}
-\end{center}
-\begin{itemize}
-\item \textbf{Result:} Mean test RMSE was 100,051.17 $\pm$ 3,652.75 SGD and mean $R^2$ was 0.6543 $\pm$ 0.0256. All five paired results and the trained embedding/MLP weights matched the baseline exactly, as expected when $\lambda=0$ disables the wide contribution. The selected model therefore provides no improvement over the matched baseline.
-\item \textbf{A1 reference:} A1(d) reported 90,595.88 SGD and $R^2=0.7169$ for one seed with a different shuffle protocol. Its lower RMSE cannot be attributed to the architecture difference; the matched five-seed comparison isolates that difference.
-\end{itemize}
+\bottomrule\end{tabular}\end{center}
+\begin{center}\small\begin{tabular}{lcc}\toprule Model & Test RMSE (SGD) & Test $R^2$ \\ \midrule
+Baseline & $100,051.17\pm 3,652.75$ & $0.6543\pm 0.0256$ \\
+Wide-and-deep & $100,051.17\pm 3,652.75$ & $0.6543\pm 0.0256$ \\
+\bottomrule\end{tabular}\end{center}
+\begin{center}\begin{tikzpicture}\begin{axis}[width=0.47\linewidth,height=3.3cm,ybar,bar width=13pt,ymin=0,title={Mean $\pm$ SD},ylabel={Test RMSE (thousand SGD)},xtick={1,2},xticklabels={Baseline,Wide},tick label style={font=\scriptsize},label style={font=\scriptsize},title style={font=\footnotesize},grid=major,scaled y ticks=false]
+\addplot+[fill=blue!40,error bars/.cd,y dir=both,y explicit] coordinates {(1,100.051167) +- (0,3.652754) (2,100.051167) +- (0,3.652754)};\end{axis}\end{tikzpicture}\begin{tikzpicture}\begin{axis}[width=0.47\linewidth,height=3.3cm,ybar,bar width=13pt,ymin=0,title={Mean $\pm$ SD},ylabel={Test $R^2$},xtick={1,2},xticklabels={Baseline,Wide},tick label style={font=\scriptsize},label style={font=\scriptsize},title style={font=\footnotesize},grid=major,scaled y ticks=false]
+\addplot+[fill=blue!40,error bars/.cd,y dir=both,y explicit] coordinates {(1,0.654316) +- (0,0.025629) (2,0.654316) +- (0,0.025629)};\end{axis}\end{tikzpicture}\end{center}
 
+\textbf{Comparison:} All five paired metrics and embedding/MLP weights matched exactly because $\lambda=0$ disables the wide contribution. No improvement was observed. A1(d)'s seed-42 reference is 98,124.06 SGD and $R^2=0.667858$; the five-seed mean accounts for run-to-run variation.
 \subsection*{(c) Discussion}
-\textbf{Mechanism:} The linear branch provides a shorter gradient path to the shared embeddings, 
-which may improve optimisation when gradients through the MLP are attenuated. 
-Due to its simplicity, it can learn additive patterns alongside the MLP's nonlinear relationships, potentially improving generalisation. 
 
-\textbf{Evidence:} However, all positive $\lambda$ values produced higher best validation RMSE than $\lambda=0$, meaning these results provide no evidence of a benefit from the linear branch under the tested settings.
+\textbf{Mechanism and evidence:} The linear branch offers a shorter gradient path to shared embeddings and may learn additive patterns alongside nonlinear MLP relationships. All positive coefficients had worse validation RMSE, providing no evidence of a benefit under these settings.
 
-\textbf{Limitations:} Gradient norms were not measured, so potential relief of vanishing gradients cannot be verified.
-
+\textbf{Limitations:} Gradient norms were not measured, so relief of vanishing gradients cannot be verified. Coefficient selection used one seed, and final testing with $\lambda=0$ cannot establish how positive coefficients generalise.
 \section*{A4}
 \subsection*{(a) FeatureAblation Computation}
-\begin{itemize}
-\item \textbf{Models:} The A1-architecture baseline and selected wide-and-deep model ($\lambda=0$) used seed 42, identical preprocessing, and 13 epochs on 2017--2021. The matched baseline checkpoint from A2 and wide checkpoint from A3(b) were loaded without retraining.
-\item \textbf{Feature groups:} Captum FeatureAblation was applied to all 26,702 test samples. Each categorical ID was ablated as one original feature, replacing its entire embedding; each of the six continuous features was ablated separately. Predictions and attributions were in SGD.
-\item \textbf{References:} Categorical features used combined-training modes: month 7, town SENGKANG, flat model ``4 ROOM, Model A'', and storey range ``04 TO 06''. Continuous features used zero after standardisation, corresponding to their combined-training means. Both models used the same references.
-\item \textbf{Aggregation:} For model $m$, sample $i$, and feature $j$, attribution and global importance were computed as
+
+\textbf{Models:} Load the actual final A1(d) baseline and A3(b) wide model, both trained with seed 42, matching shuffle order, preprocessing and 13 epochs on 2017--2021. Captum FeatureAblation was applied to all 26,702 test samples without retraining.
+
+\textbf{References:} Categories use combined-training modes: month 7, town SENGKANG, flat model ``4 ROOM, Model A'', storey range ``04 TO 06''. Continuous features use zero after standardisation (combined-training means). Each categorical ID represents one entire embedding; the six continuous features are separate groups.
+
+\textbf{Aggregation:} Predictions and attributions are in SGD. For feature reference $r_j$,
 \[
- a_{ij}^{(m)}=f_m(x_i)-f_m\!\left(x_i^{(j\leftarrow r_j)}\right),
- \qquad I_j^{(m)}=\frac{1}{26{,}702}\sum_{i=1}^{26{,}702}\left|a_{ij}^{(m)}\right|,
+a_{ij}^{(m)}=f_m(x_i)-f_m(x_i^{(j\leftarrow r_j)}),\qquad I_j^{(m)}=\frac{1}{26{,}702}\sum_{i=1}^{26{,}702}|a_{ij}^{(m)}|.
 \]
-where $r_j$ is the reference value. Signed per-sample attributions were saved for both models.
-\end{itemize}
-\textbf{Global importance scores:} Mean absolute attribution (SGD).
-\begin{center}
-\small
-\begin{tabular}{lrr}
-\toprule
-Original feature & Baseline & Wide-and-deep \\
-\midrule
+\begin{center}\small\begin{tabular}{lrr}\toprule Original feature & Baseline (SGD)&Wide-and-deep (SGD)\\\midrule
 month & 4,800.15 & 4,800.15 \\
 town & 41,222.37 & 41,222.37 \\
 flat\_model\_type & 52,032.36 & 52,032.36 \\
@@ -436,44 +217,17 @@ degree\_centrality & 3,389.72 & 3,389.72 \\
 eigenvector\_centrality & 5,625.70 & 5,625.70 \\
 remaining\_lease\_years & 44,949.20 & 44,949.20 \\
 floor\_area\_sqm & 61,648.57 & 61,648.57 \\
-\bottomrule
-\end{tabular}
-\end{center}
-\textbf{Verification:} All ten Captum attributions were checked against manual prediction differences on eight samples. Both full attribution matrices were finite and had shape $26{,}702\times10$; their maximum absolute difference was 0 SGD, consistent with $\lambda=0$ and matching trained weights.
+\bottomrule\end{tabular}\end{center}
 
+\textbf{Verification:} Manual prediction differences matched Captum for ten features on eight samples. Both saved attribution matrices have shape $26{,}702\times10$, finite values and maximum inter-model difference 0 SGD.
 \subsection*{(b) Feature Importance Plots}
-\textbf{Ordering:} Each plot shows all ten features in descending mean absolute attribution (SGD). The two rankings and scores coincide because the selected $\lambda=0$ model is equivalent to the matched baseline.
-\begin{center}
-\begin{tikzpicture}
-\begin{axis}[width=0.88\linewidth,height=5.2cm,xbar,bar width=6pt,
-    title={Baseline (seed 42)},xlabel={Mean absolute attribution (SGD)},
-    xmin=0,xmax=72000,ymin=0.4,ymax=10.6,y dir=reverse,
-    ytick={1,2,3,4,5,6,7,8,9,10},yticklabels={floor\_area\_sqm,flat\_model\_type,remaining\_lease\_years,town,dist\_to\_dhoby,dist\_to\_nearest\_stn,storey\_range,eigenvector\_centrality,month,degree\_centrality},
-    tick label style={font=\scriptsize},title style={font=\footnotesize},
-    label style={font=\footnotesize},scaled x ticks=false,xmajorgrids=true]
-\addplot[fill=blue!45,draw=blue] coordinates {(61648.57,1) (52032.36,2) (44949.20,3) (41222.37,4) (33319.83,5) (19727.62,6) (19716.84,7) (5625.70,8) (4800.15,9) (3389.72,10)};
-\end{axis}
-\end{tikzpicture}
-\end{center}
-\begin{center}
-\begin{tikzpicture}
-\begin{axis}[width=0.88\linewidth,height=5.2cm,xbar,bar width=6pt,
-    title={Wide-and-deep (seed 42, $\lambda=0$)},xlabel={Mean absolute attribution (SGD)},
-    xmin=0,xmax=72000,ymin=0.4,ymax=10.6,y dir=reverse,
-    ytick={1,2,3,4,5,6,7,8,9,10},yticklabels={floor\_area\_sqm,flat\_model\_type,remaining\_lease\_years,town,dist\_to\_dhoby,dist\_to\_nearest\_stn,storey\_range,eigenvector\_centrality,month,degree\_centrality},
-    tick label style={font=\scriptsize},title style={font=\footnotesize},
-    label style={font=\footnotesize},scaled x ticks=false,xmajorgrids=true]
-\addplot[fill=green!60!black!45,draw=green!60!black] coordinates {(61648.57,1) (52032.36,2) (44949.20,3) (41222.37,4) (33319.83,5) (19727.62,6) (19716.84,7) (5625.70,8) (4800.15,9) (3389.72,10)};
-\end{axis}
-\end{tikzpicture}
-\end{center}
-
+\begin{center}\begin{tikzpicture}\begin{axis}[width=0.88\linewidth,height=4.2cm,xbar,bar width=5pt,title={Baseline (A1 final, seed 42)},xlabel={Mean absolute attribution (SGD)},xmin=0,xmax=70000,xtick distance=10000,ymin=0.4,ymax=10.6,y dir=reverse,ytick={1,2,3,4,5,6,7,8,9,10},yticklabels={floor\_area\_sqm,flat\_model\_type,remaining\_lease\_years,town,dist\_to\_dhoby,dist\_to\_nearest\_stn,storey\_range,eigenvector\_centrality,month,degree\_centrality},tick label style={font=\scriptsize},label style={font=\scriptsize},title style={font=\footnotesize},scaled x ticks=false,xmajorgrids=true]\addplot[fill=blue!40,draw=blue] coordinates {(61648.57,1) (52032.36,2) (44949.20,3) (41222.37,4) (33319.83,5) (19727.62,6) (19716.84,7) (5625.70,8) (4800.15,9) (3389.72,10)};\end{axis}\end{tikzpicture}\end{center}
+\begin{center}\begin{tikzpicture}\begin{axis}[width=0.88\linewidth,height=4.2cm,xbar,bar width=5pt,title={Wide-and-deep (seed 42, $\lambda=0$)},xlabel={Mean absolute attribution (SGD)},xmin=0,xmax=70000,xtick distance=10000,ymin=0.4,ymax=10.6,y dir=reverse,ytick={1,2,3,4,5,6,7,8,9,10},yticklabels={floor\_area\_sqm,flat\_model\_type,remaining\_lease\_years,town,dist\_to\_dhoby,dist\_to\_nearest\_stn,storey\_range,eigenvector\_centrality,month,degree\_centrality},tick label style={font=\scriptsize},label style={font=\scriptsize},title style={font=\footnotesize},scaled x ticks=false,xmajorgrids=true]\addplot[fill=green!60!black!40,draw=green!60!black] coordinates {(61648.57,1) (52032.36,2) (44949.20,3) (41222.37,4) (33319.83,5) (19727.62,6) (19716.84,7) (5625.70,8) (4800.15,9) (3389.72,10)};\end{axis}\end{tikzpicture}\end{center}
 \subsection*{(c) Interpretation}
-\begin{itemize}
-\item \textbf{Top three features:} \texttt{floor\_area\_sqm} (61,648.57 SGD), \texttt{flat\_model\_type} (52,032.36 SGD), \texttt{remaining\_lease\_years} (44,949.20 SGD).
-\item \textbf{Comparison and discussion:} The importance scores show that these three features are the most important in predicting the price of a property.
-\item \textbf{Limitation of the analysis:}  Different reference values used for feature ablation may affect the relative importance of continuous features, changing the results.
-\end{itemize}
 
+\textbf{Top three:} Both models rank floor\_area\_sqm (61,648.57 SGD), flat\_model\_type (52,032.36 SGD) and remaining\_lease\_years (44,949.20 SGD) highest. These scores measure average prediction changes relative to the chosen references, rather than unit-price effects.
 
+\textbf{Comparison:} Area, flat type and lease duration carry substantial predictive information. Both complete rankings and scores coincide because the selected $\lambda=0$ model has the same predictive function as the matched baseline.
+
+\textbf{Limitation:} Reference choices can change feature rankings, and replacing one feature may produce unrealistic combinations of correlated inputs. The resulting importance is not a causal effect.
 \end{document}

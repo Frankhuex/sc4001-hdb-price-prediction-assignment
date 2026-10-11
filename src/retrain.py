@@ -86,7 +86,8 @@ def main() -> None:
     torch.use_deterministic_algorithms(True, warn_only=True)
     model: PriceModel = PriceModel(data["cardinalities"], data["target_mean"],
                                    data["target_std"], config)
-    loader: DataLoader = DataLoader(data["train"], batch_size=config.batch_size, shuffle=True)
+    generator: torch.Generator = torch.Generator().manual_seed(config.seed)
+    loader: DataLoader = DataLoader(data["train"], batch_size=config.batch_size, shuffle=True, generator=generator)
     optimiser: torch.optim.Adam = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
     loss_function: nn.MSELoss = nn.MSELoss()
     history: list[RetrainingEpoch] = []
@@ -108,6 +109,7 @@ def main() -> None:
     torch.save(model.state_dict(), OUTPUT_DIR / "final_model.pt")
     final_metadata: dict[str, object] = {
         "config": asdict(config), "epochs": epochs,
+        "shuffle": "independent generator seeded per run",
         "training_years": [*config.train_years, config.validation_year],
         "training_rows": len(data["train"]), "test_rows": len(data["test"]),
         "cardinalities": data["cardinalities"],

@@ -95,8 +95,8 @@ The no-embedding model has only six continuous inputs. Sigmoid changes only
 the hidden activation. Independent seeded DataLoader generators give all
 three variants the same minibatch order for each seed. Every model trains
 from scratch for 13 epochs in the recorded experiment, then evaluates the
-2022 test set exactly once. This controlled shuffle protocol differs from
-A1(d), so its seed-42 result need not match A1(d).
+2022 test set exactly once. A1(d) uses the same controlled shuffle protocol,
+so the baseline seed-42 weights and metrics match A1(d).
 
 `outputs/a2/` contains `run.log`, per-run `results.csv`, `summary.csv` with
 five-seed means and sample standard deviations (`ddof=1`), and error-bar
@@ -146,10 +146,9 @@ training histories, and metadata under `outputs/a3_b/`.
 The five-seed A1-architecture baseline recorded in A2 is reused as the
 matched comparison; its preprocessing, configuration, seeds, and epoch
 count are checked before training. `baseline_reference.csv` preserves
-these reference values. The original A1(d) single-seed metrics are also
+these reference values. The A1(d) single-seed metrics are also
 included as dashed reference lines in the plots and recorded in metadata.
-Its shuffle protocol differs, so compare the paired five-seed results
-when assessing the branch's effect. For selected lambda zero, the script
+Use the paired five-seed results when assessing the branch's effect. For selected lambda zero, the script
 also verifies that shared trained weights match each paired baseline.
 
 ## A4(a): FeatureAblation for ten original features
@@ -159,8 +158,9 @@ mkdir -p outputs/a4
 uv run python -u src/feature_ablation.py > outputs/a4/run.log 2>&1
 ```
 
-Load the A1-architecture baseline from A2 seed 42 and the selected A3(b)
-model from seed 42, both trained for 13 epochs with the matched shuffle
+Run A1(d) and A3(b) first. Load the final A1(d) checkpoint
+(`outputs/a1_d/final_model.pt`) and the selected A3(b) model from seed 42,
+both trained for 13 epochs with the matched shuffle
 protocol. Captum FeatureAblation evaluates all 26,702 test samples in SGD.
 Each categorical ID is one original feature; replacing it changes its
 entire embedding. The shared categorical reference is the combined-training

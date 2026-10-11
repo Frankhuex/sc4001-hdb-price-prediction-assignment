@@ -89,7 +89,7 @@ def main() -> None:
     for index, name in enumerate(config.continuous_features):
         reference_values[name] = {"standardized_value": 0.0, "raw_value": data["continuous_mean"][index].item()}
     checkpoint_paths: dict[str, Path] = {
-        "baseline": PROJECT_ROOT / f"outputs/a2/baseline/seed_{SEED}/final_model.pt",
+        "baseline": PROJECT_ROOT / "outputs/a1_d/final_model.pt",
         "wide": PROJECT_ROOT / f"outputs/a3_b/seed_{SEED}/final_model.pt",
     }
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -104,7 +104,7 @@ def main() -> None:
     checkpoint: Path
     for label, checkpoint in checkpoint_paths.items():
         run_metadata: dict[str, Any] = json.loads(checkpoint.with_name("metadata.json").read_text())
-        if run_metadata["config"] != json.loads(json.dumps(asdict(config))) or run_metadata["result"]["epochs"] != metadata["epochs"]:
+        if run_metadata["config"] != json.loads(json.dumps(asdict(config))) or (run_metadata["epochs"] if label == "baseline" else run_metadata["result"]["epochs"]) != metadata["epochs"]:
             raise ValueError("Checkpoints must use the same seed and duration.")
         model: PriceModel = PriceModel(data["cardinalities"], data["target_mean"], data["target_std"], config,
                                        wide_lambda=coefficient if label == "wide" else None)
