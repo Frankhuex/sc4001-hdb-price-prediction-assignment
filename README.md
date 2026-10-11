@@ -152,6 +152,44 @@ Its shuffle protocol differs, so compare the paired five-seed results
 when assessing the branch's effect. For selected lambda zero, the script
 also verifies that shared trained weights match each paired baseline.
 
+## A4(a): FeatureAblation for ten original features
+
+```bash
+mkdir -p outputs/a4
+uv run python -u src/feature_ablation.py > outputs/a4/run.log 2>&1
+```
+
+Load the A1-architecture baseline from A2 seed 42 and the selected A3(b)
+model from seed 42, both trained for 13 epochs with the matched shuffle
+protocol. Captum FeatureAblation evaluates all 26,702 test samples in SGD.
+Each categorical ID is one original feature; replacing it changes its
+entire embedding. The shared categorical reference is the combined-training
+modal category (ties choose the smallest sorted ID); continuous references
+are zero after standardization, representing combined-training means.
+Unknown category 0 is not used as a reference.
+
+`outputs/a4/` contains `run.log`, `baseline_attributions.csv`,
+`wide_attributions.csv`, `feature_importance.csv`, and `metadata.json`.
+The per-sample files include test sample indices and source CSV row numbers,
+followed by ten signed attributions. Importance is their mean absolute
+value per feature; it depends on the chosen reference and is not causal.
+Metadata records reference values, input/checkpoint hashes, and the maximum
+attribution difference between models. All ten attributions on eight
+samples are checked against manual prediction differences. For lambda zero,
+the full attribution matrices must agree exactly. A4(b) plots and A4(c)
+interpretation are separate steps.
+
+## A4(b): Descending feature importance plots
+
+```bash
+uv run python src/plot_feature_importance.py > outputs/a4/plot.log 2>&1
+```
+
+Reads A4(a) scores and writes `baseline_importance.png`,
+`wide_importance.png`, and `importance_comparison.png` under `outputs/a4/`.
+Every chart labels all ten features and SGD units in descending order.
+No attribution computation or training is repeated.
+
 ## Original baseline
 
 To run one experiment using the original configuration:
@@ -174,6 +212,8 @@ hyperparameters are defined in `src/config.py`.
 | `src/baseline.py` | Shared training and RMSE evaluation, plus the single-run baseline entry point |
 | `src/grid_search.py` | A1(b) Ray grid search and result export |
 | `src/retrain.py` | A1(c) curves and A1(d) combined-data retraining and test evaluation |
+| `src/plot_feature_importance.py` | A4(b) descending per-model attribution plots |
+| `src/feature_ablation.py` | A4(a) full-test-set original-feature attribution in SGD |
 | `src/wide_evaluate.py` | A3(b) selected-model five-seed test evaluation and baseline comparison |
 | `src/wide_search.py` | A3(a) validation search for the wide branch coefficient |
 | `src/ablation.py` | A2 five-seed baseline and ablation comparison, statistics, and plots |

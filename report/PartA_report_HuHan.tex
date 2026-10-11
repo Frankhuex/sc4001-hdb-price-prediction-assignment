@@ -407,5 +407,73 @@ Due to its simplicity, it can learn additive patterns alongside the MLP's nonlin
 \textbf{Limitations:} Gradient norms were not measured, so potential relief of vanishing gradients cannot be verified.
 
 \section*{A4}
+\subsection*{(a) FeatureAblation Computation}
+\begin{itemize}
+\item \textbf{Models:} The A1-architecture baseline and selected wide-and-deep model ($\lambda=0$) used seed 42, identical preprocessing, and 13 epochs on 2017--2021. The matched baseline checkpoint from A2 and wide checkpoint from A3(b) were loaded without retraining.
+\item \textbf{Feature groups:} Captum FeatureAblation was applied to all 26,702 test samples. Each categorical ID was ablated as one original feature, replacing its entire embedding; each of the six continuous features was ablated separately. Predictions and attributions were in SGD.
+\item \textbf{References:} Categorical features used combined-training modes: month 7, town SENGKANG, flat model ``4 ROOM, Model A'', and storey range ``04 TO 06''. Continuous features used zero after standardisation, corresponding to their combined-training means. Both models used the same references.
+\item \textbf{Aggregation:} For model $m$, sample $i$, and feature $j$, attribution and global importance were computed as
+\[
+ a_{ij}^{(m)}=f_m(x_i)-f_m\!\left(x_i^{(j\leftarrow r_j)}\right),
+ \qquad I_j^{(m)}=\frac{1}{26{,}702}\sum_{i=1}^{26{,}702}\left|a_{ij}^{(m)}\right|,
+\]
+where $r_j$ is the reference value. Signed per-sample attributions were saved for both models.
+\end{itemize}
+\textbf{Global importance scores:} Mean absolute attribution (SGD).
+\begin{center}
+\small
+\begin{tabular}{lrr}
+\toprule
+Original feature & Baseline & Wide-and-deep \\
+\midrule
+month & 4,800.15 & 4,800.15 \\
+town & 41,222.37 & 41,222.37 \\
+flat\_model\_type & 52,032.36 & 52,032.36 \\
+storey\_range & 19,716.84 & 19,716.84 \\
+dist\_to\_nearest\_stn & 19,727.62 & 19,727.62 \\
+dist\_to\_dhoby & 33,319.83 & 33,319.83 \\
+degree\_centrality & 3,389.72 & 3,389.72 \\
+eigenvector\_centrality & 5,625.70 & 5,625.70 \\
+remaining\_lease\_years & 44,949.20 & 44,949.20 \\
+floor\_area\_sqm & 61,648.57 & 61,648.57 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\textbf{Verification:} All ten Captum attributions were checked against manual prediction differences on eight samples. Both full attribution matrices were finite and had shape $26{,}702\times10$; their maximum absolute difference was 0 SGD, consistent with $\lambda=0$ and matching trained weights.
+
+\subsection*{(b) Feature Importance Plots}
+\textbf{Ordering:} Each plot shows all ten features in descending mean absolute attribution (SGD). The two rankings and scores coincide because the selected $\lambda=0$ model is equivalent to the matched baseline.
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=0.88\linewidth,height=5.2cm,xbar,bar width=6pt,
+    title={Baseline (seed 42)},xlabel={Mean absolute attribution (SGD)},
+    xmin=0,xmax=72000,ymin=0.4,ymax=10.6,y dir=reverse,
+    ytick={1,2,3,4,5,6,7,8,9,10},yticklabels={floor\_area\_sqm,flat\_model\_type,remaining\_lease\_years,town,dist\_to\_dhoby,dist\_to\_nearest\_stn,storey\_range,eigenvector\_centrality,month,degree\_centrality},
+    tick label style={font=\scriptsize},title style={font=\footnotesize},
+    label style={font=\footnotesize},scaled x ticks=false,xmajorgrids=true]
+\addplot[fill=blue!45,draw=blue] coordinates {(61648.57,1) (52032.36,2) (44949.20,3) (41222.37,4) (33319.83,5) (19727.62,6) (19716.84,7) (5625.70,8) (4800.15,9) (3389.72,10)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=0.88\linewidth,height=5.2cm,xbar,bar width=6pt,
+    title={Wide-and-deep (seed 42, $\lambda=0$)},xlabel={Mean absolute attribution (SGD)},
+    xmin=0,xmax=72000,ymin=0.4,ymax=10.6,y dir=reverse,
+    ytick={1,2,3,4,5,6,7,8,9,10},yticklabels={floor\_area\_sqm,flat\_model\_type,remaining\_lease\_years,town,dist\_to\_dhoby,dist\_to\_nearest\_stn,storey\_range,eigenvector\_centrality,month,degree\_centrality},
+    tick label style={font=\scriptsize},title style={font=\footnotesize},
+    label style={font=\footnotesize},scaled x ticks=false,xmajorgrids=true]
+\addplot[fill=green!60!black!45,draw=green!60!black] coordinates {(61648.57,1) (52032.36,2) (44949.20,3) (41222.37,4) (33319.83,5) (19727.62,6) (19716.84,7) (5625.70,8) (4800.15,9) (3389.72,10)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+\subsection*{(c) Interpretation}
+\begin{itemize}
+\item \textbf{Top three features:} \texttt{floor\_area\_sqm} (61,648.57 SGD), \texttt{flat\_model\_type} (52,032.36 SGD), \texttt{remaining\_lease\_years} (44,949.20 SGD).
+\item \textbf{Comparison and discussion:} The importance scores show that these three features are the most important in predicting the price of a property.
+\item \textbf{Limitation of the analysis:}  Different reference values used for feature ablation may affect the relative importance of continuous features, changing the results.
+\end{itemize}
+
 
 \end{document}
