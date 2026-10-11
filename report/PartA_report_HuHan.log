@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.29)  11 OCT 2026 15:48
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.29)  12 OCT 2026 01:49
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -721,7 +721,7 @@ L3 programming layer <2024-02-20>
 Here is how much of TeX's memory you used:
  25258 strings out of 474116
  647523 string characters out of 5743682
- 1961187 words of memory out of 5000000
+ 1962187 words of memory out of 5000000
  47235 multiletter control sequences out of 15000+600000
  568726 words of font info for 77 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -747,7 +747,7 @@ ist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2024/texmf-di
 st/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2024/texmf-dist
 /fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2024/texmf-dist/f
 onts/type1/public/amsfonts/cm/cmsy9.pfb>
-Output written on PartA_report_HuHan.pdf (5 pages, 276664 bytes).
+Output written on PartA_report_HuHan.pdf (5 pages, 277033 bytes).
 PDF statistics:
  128 PDF objects out of 1000 (max. 8388607)
  78 compressed objects within 1 object stream
